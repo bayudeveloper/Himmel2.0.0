@@ -49,7 +49,7 @@
         },
         {
           "name": "NanoBanana",
-          "desc": "AI Image Generator - Transform images with prompts (need image_url)",
+          "desc": "editing photo",
           "path": "/ai/nanana?url=&prompt="
         },
         {

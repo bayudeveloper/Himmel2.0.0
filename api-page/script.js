@@ -342,15 +342,46 @@ window.addEventListener('scroll', () => {
    Stats Cards
    ═══════════════════════════════════════════ */
 
+// ── Live Uptime Ticker ──────────────────────────────
+let _uptimeSec = 0, _tickerOn = false;
+
+function _fmtUptime(s) {
+    const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60;
+    if(h>0) return h+'h '+String(m).padStart(2,'0')+'m '+String(ss).padStart(2,'0')+'s';
+    if(m>0) return m+'m '+String(ss).padStart(2,'0')+'s';
+    return ss+'s';
+}
+
+function _startTicker() {
+    if (_tickerOn) return;
+    _tickerOn = true;
+    setInterval(() => {
+        _uptimeSec++;
+        const el = document.getElementById('valUptime');
+        if (el) { el.textContent = _fmtUptime(_uptimeSec); el.classList.remove('loading'); }
+    }, 1000);
+}
+
 async function loadUptime() {
-    const el = document.getElementById('valUptime');
-    if (!el) return;
     try {
         const r = await fetch('/health');
         const d = await r.json();
-        el.textContent = d.uptime || 'N/A';
-        el.classList.remove('loading');
-    } catch { el.textContent = 'Unreachable'; }
+        if (d.uptime) {
+            const match = d.uptime.match(/(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s)?/);
+            _uptimeSec = (parseInt(match?.[1]||0)*3600)+(parseInt(match?.[2]||0)*60)+parseInt(match?.[3]||0);
+        }
+        // RAM card
+        if (d.memory) {
+            const ramEl = document.getElementById('valRam');
+            if (ramEl) { ramEl.textContent = d.memory; ramEl.classList.remove('loading'); }
+        }
+        const el = document.getElementById('valUptime');
+        if (el) { el.textContent = _fmtUptime(_uptimeSec); el.classList.remove('loading'); }
+        _startTicker();
+    } catch {
+        const el = document.getElementById('valUptime');
+        if (el) el.textContent = 'Unreachable';
+    }
 }
 
 function loadMonthlyUsers() {

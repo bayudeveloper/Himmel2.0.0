@@ -1,454 +1,862 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Admin — Himmel API</title>
-<link rel="icon" href="https://files.catbox.moe/rbfc5x.jpg" type="image/jpeg">
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-/* ════════════════════════════════════════════════
-   RESET & BASE
-   ════════════════════════════════════════════════ */
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-html { scroll-behavior:smooth; }
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Admin — Himmel API</title>
+    <link rel="icon" href="https://files.catbox.moe/rbfc5x.jpg" type="image/jpeg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ========================================
+           CORE VARIABLES — LIGHT & CLEAN
+        ======================================== */
+        :root {
+            --bg: #ffffff;
+            --bg-soft: #fafafa;
+            --bg-glass: rgba(255, 255, 255, 0.7);
+            --bg-glass-strong: rgba(255, 255, 255, 0.85);
+            --text-primary: #171717;
+            --text-secondary: #525252;
+            --text-tertiary: #a3a3a3;
+            --accent: #2563eb;
+            --accent-soft: rgba(37, 99, 235, 0.08);
+            --border: #e5e5e5;
+            --border-light: #f0f0f0;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.02);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 20px 48px -8px rgba(0, 0, 0, 0.05);
+            --blur: blur(20px);
+            --blur-sm: blur(12px);
+            --success: #059669;
+            --success-soft: rgba(5, 150, 105, 0.08);
+            --warning: #d97706;
+            --warning-soft: rgba(217, 119, 6, 0.08);
+            --error: #dc2626;
+            --error-soft: rgba(220, 38, 38, 0.08);
+            --info: #2563eb;
+            --info-soft: rgba(37, 99, 235, 0.08);
+        }
 
-body {
-    font-family: 'Quicksand', sans-serif;
-    background: #0a0f1e;
-    color: #e2e8f0;
-    min-height: 100vh;
-}
+        /* ========================================
+           RESET & BASE
+        ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-/* ════════════════════════════════════════════════
-   LOGIN PAGE
-   ════════════════════════════════════════════════ */
-#loginPage {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+        html {
+            scroll-behavior: smooth;
+        }
 
-    /* Background image langsung di element ini */
-    background-image: url('https://h.uguu.se/WUZwLGYM.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-}
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
 
-/* Overlay gelap di atas background */
-#loginPage::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(5, 8, 20, 0.72);
-    backdrop-filter: blur(2px);
-}
+        /* ========================================
+           LOGIN PAGE — CLEAN & MINIMAL
+        ======================================== */
+        #loginPage {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+        }
 
-/* Login card */
-.login-card {
-    position: relative;
-    z-index: 1;
-    width: 340px;
-    background: rgba(10, 16, 34, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 22px;
-    padding: 40px 36px;
-    text-align: center;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    box-shadow:
-        0 0 0 1px rgba(255,255,255,0.04),
-        0 24px 64px rgba(0,0,0,0.6),
-        inset 0 1px 0 rgba(255,255,255,0.07);
-    animation: cardIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
+        /* Abstract blur shapes */
+        #loginPage::before {
+            content: '';
+            position: absolute;
+            width: 60%;
+            height: 60%;
+            top: -20%;
+            right: -10%;
+            background: radial-gradient(circle at 30% 50%, rgba(37, 99, 235, 0.03) 0%, transparent 50%);
+            border-radius: 50%;
+            filter: blur(60px);
+            z-index: 0;
+        }
 
-@keyframes cardIn {
-    from { opacity:0; transform:translateY(24px) scale(0.95); }
-    to   { opacity:1; transform:translateY(0) scale(1); }
-}
+        #loginPage::after {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            bottom: -10%;
+            left: -5%;
+            background: radial-gradient(circle at 70% 50%, rgba(99, 102, 241, 0.03) 0%, transparent 50%);
+            border-radius: 50%;
+            filter: blur(60px);
+            z-index: 0;
+        }
 
-.login-icon {
-    width: 64px;
-    height: 64px;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.6rem;
-    margin: 0 auto 16px;
-    box-shadow: 0 8px 24px rgba(59,130,246,0.4);
-}
+        .login-card {
+            position: relative;
+            z-index: 1;
+            width: 360px;
+            background: var(--bg-glass-strong);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 40px 32px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            animation: cardFloat 0.6s ease;
+        }
 
-.login-card h2 {
-    color: #f1f5f9;
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-.login-card p {
-    color: rgba(255,255,255,0.35);
-    font-size: 0.78rem;
-    margin-bottom: 24px;
-}
+        @keyframes cardFloat {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
 
-.input-group {
-    position: relative;
-    margin-bottom: 12px;
-}
-.input-group .ico {
-    position: absolute;
-    left: 13px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.82rem;
-    opacity: 0.35;
-    pointer-events: none;
-}
-.login-input {
-    width: 100%;
-    padding: 12px 14px 12px 36px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.09);
-    border-radius: 11px;
-    color: #f1f5f9;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.88rem;
-    letter-spacing: 2px;
-    outline: none;
-    transition: all 0.2s;
-}
-.login-input:focus {
-    border-color: rgba(59,130,246,0.5);
-    background: rgba(59,130,246,0.08);
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
-}
-.login-input::placeholder { letter-spacing:0; color: rgba(255,255,255,0.22); }
+        .login-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 20px;
+            background: var(--accent-soft);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--accent);
+            border: 1px solid var(--border);
+        }
 
-.login-submit {
-    width: 100%;
-    padding: 12px;
-    margin-top: 6px;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    color: white;
-    border: none;
-    border-radius: 11px;
-    font-family: 'Quicksand', sans-serif;
-    font-weight: 700;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 8px 20px rgba(59,130,246,0.35);
-    letter-spacing: 0.3px;
-}
-.login-submit:hover { opacity:0.88; transform:translateY(-1px); }
-.login-submit:active { transform:translateY(0); }
+        .login-card h2 {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
 
-.login-error {
-    color: #f87171;
-    font-size: 0.76rem;
-    margin-top: 10px;
-    min-height: 16px;
-}
-@keyframes shake {
-    0%,100% { transform:translateX(0); }
-    25%      { transform:translateX(-6px); }
-    75%      { transform:translateX(6px); }
-}
+        .login-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 28px;
+        }
 
-/* ════════════════════════════════════════════════
-   DASHBOARD
-   ════════════════════════════════════════════════ */
-#dashPage { display:none; }
+        .input-group {
+            position: relative;
+            margin-bottom: 16px;
+        }
 
-/* Navbar */
-.adm-nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    height: 56px;
-    background: rgba(8, 12, 24, 0.94);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255,255,255,0.07);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 22px;
-}
-.nav-l { display:flex; align-items:center; gap:10px; }
-.nav-logo  { font-weight:700; font-size:0.92rem; color:#f1f5f9; }
-.nav-badge {
-    background: linear-gradient(135deg,#3b82f6,#8b5cf6);
-    color:white; padding:2px 9px; border-radius:99px;
-    font-size:0.63rem; font-weight:700;
-}
-.live-pill {
-    display: flex; align-items: center; gap:5px;
-    font-size: 0.68rem; color: #94a3b8;
-    background: rgba(34,197,94,0.08);
-    border: 1px solid rgba(34,197,94,0.18);
-    padding: 2px 9px; border-radius:99px;
-}
-.live-dot {
-    width:5px; height:5px; background:#22c55e; border-radius:50%;
-    animation: pulse 1.5s ease-in-out infinite;
-    box-shadow: 0 0 4px #22c55e;
-}
-@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.55)} }
+        .input-group .ico {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+            font-size: 16px;
+            pointer-events: none;
+        }
 
-.nav-r { display:flex; gap:7px; }
-.nav-btn {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #94a3b8; border-radius:8px;
-    padding: 5px 12px; font-size:0.72rem; font-weight:600;
-    cursor: pointer; transition:all 0.2s;
-    font-family: 'Quicksand', sans-serif;
-    text-decoration: none;
-    display: inline-flex; align-items:center;
-}
-.nav-btn:hover { background:rgba(59,130,246,0.2); color:#60a5fa; border-color:rgba(59,130,246,0.3); }
-.nav-btn.danger:hover { background:rgba(239,68,68,0.2); color:#f87171; border-color:rgba(239,68,68,0.3); }
+        .login-input {
+            width: 100%;
+            padding: 14px 14px 14px 44px;
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.2s;
+        }
 
-/* Main content */
-.adm-main {
-    padding: 72px 22px 48px;
-    max-width: 1080px;
-    margin: 0 auto;
-}
+        .login-input:focus {
+            border-color: var(--accent);
+            background: var(--bg);
+            box-shadow: 0 0 0 4px var(--accent-soft);
+        }
 
-/* Section label */
-.sec-label {
-    font-size: 0.62rem;
-    font-weight: 700;
-    color: #475569;
-    text-transform: uppercase;
-    letter-spacing: 1.8px;
-    margin: 28px 0 12px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.sec-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: rgba(255,255,255,0.06);
-}
+        .login-input::placeholder {
+            color: var(--text-tertiary);
+            font-weight: 300;
+        }
 
-/* ── Summary Cards ── */
-.sum-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
-    gap: 10px;
-}
-.sum-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 14px;
-    padding: 18px 16px;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), border-color 0.2s;
-    cursor: default;
-}
-.sum-card:hover {
-    transform: translateY(-3px);
-    border-color: rgba(255,255,255,0.13);
-}
-.sum-card .glow {
-    position: absolute;
-    top: -40px; right: -40px;
-    width: 100px; height: 100px;
-    border-radius: 50%;
-    opacity: 0.08;
-    pointer-events: none;
-}
-.sc-blue   .glow { background:#3b82f6; }
-.sc-green  .glow { background:#22c55e; }
-.sc-yellow .glow { background:#f59e0b; }
-.sc-red    .glow { background:#ef4444; }
-.sc-purple .glow { background:#a855f7; }
-.sc-pink   .glow { background:#ec4899; }
+        .login-submit {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
 
-.sc-icon  { font-size:1.25rem; margin-bottom:10px; }
-.sc-label {
-    font-size: 0.62rem; font-weight:700; color:#475569;
-    text-transform:uppercase; letter-spacing:0.7px;
-    margin-bottom: 4px;
-    display:flex; align-items:center; gap:4px;
-}
-.sc-ldot {
-    width:5px; height:5px; background:#22c55e; border-radius:50%;
-    animation:pulse 1.5s infinite;
-}
-.sc-val {
-    font-size: 1.45rem; font-weight:700; color:#f1f5f9;
-    font-family: 'JetBrains Mono', monospace;
-    line-height: 1;
-}
-.sc-sub { font-size:0.65rem; color:#475569; margin-top:5px; }
+        .login-submit:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
 
-/* ── Card container ── */
-.adm-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 14px;
-    overflow: hidden;
-    margin-bottom: 10px;
-}
-.adm-card-head {
-    padding: 13px 18px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    display: flex; align-items:center; justify-content:space-between;
-}
-.adm-card-title { font-weight:700; font-size:0.82rem; color:#f1f5f9; }
-.adm-card-sub   { font-size:0.68rem; color:#475569; }
+        .login-submit:active {
+            transform: translateY(0);
+        }
 
-/* ── Tables ── */
-table { width:100%; border-collapse:collapse; }
-th {
-    font-size: 0.6rem; font-weight:700; color:#475569;
-    text-transform:uppercase; letter-spacing:0.8px;
-    padding: 10px 18px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    background: rgba(255,255,255,0.015);
-    text-align:left;
-}
-td {
-    padding: 10px 18px;
-    font-size: 0.78rem; color:#94a3b8;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    text-align:left;
-}
-td.mono {
-    font-family: 'JetBrains Mono', monospace;
-    color: #e2e8f0;
-    font-size: 0.73rem;
-}
-tr:last-child td { border-bottom:none; }
-tr:hover td { background:rgba(255,255,255,0.015); }
+        .login-error {
+            font-size: 13px;
+            color: var(--error);
+            margin-top: 16px;
+            min-height: 20px;
+        }
 
-/* badges */
-.bdg {
-    display:inline-block; padding:2px 8px; border-radius:99px;
-    font-size:0.62rem; font-weight:700; font-family:'Quicksand',sans-serif;
-}
-.bdg-green  { background:rgba(34,197,94,0.12);  color:#4ade80; }
-.bdg-red    { background:rgba(239,68,68,0.12);  color:#f87171; }
-.bdg-blue   { background:rgba(59,130,246,0.12); color:#60a5fa; }
-.bdg-yellow { background:rgba(245,158,11,0.12); color:#fbbf24; }
-.bdg-purple { background:rgba(168,85,247,0.12); color:#c084fc; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
 
-/* progress */
-.prog { height:4px; background:rgba(255,255,255,0.06); border-radius:99px; overflow:hidden; min-width:55px; }
-.prog span { display:block; height:100%; border-radius:99px; }
-.p-red    { background:linear-gradient(90deg,#ef4444,#dc2626); width:33%; }
-.p-yellow { background:linear-gradient(90deg,#f59e0b,#d97706); width:60%; }
-.p-green  { background:linear-gradient(90deg,#22c55e,#16a34a); width:100%; }
+        /* ========================================
+           DASHBOARD — CLEAN & SPACIOUS
+        ======================================== */
+        #dashPage {
+            display: none;
+            background: var(--bg);
+        }
 
-/* Key form */
-.key-form {
-    display:flex; gap:8px; flex-wrap:wrap;
-    padding: 13px 18px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-}
-.key-form input {
-    flex:1; min-width:100px;
-    padding: 7px 12px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 9px;
-    color: #e2e8f0;
-    font-family: 'Quicksand', sans-serif;
-    font-size: 0.78rem;
-    outline:none;
-    transition: border 0.2s;
-}
-.key-form input:focus { border-color:rgba(59,130,246,0.5); background:rgba(59,130,246,0.06); }
-.key-form input::placeholder { color:#475569; }
+        /* Background abstract shapes */
+        .dashboard-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
 
-.btn-xs {
-    padding: 7px 14px; border-radius:9px; border:none;
-    font-size: 0.7rem; font-weight:700; cursor:pointer;
-    font-family: 'Quicksand', sans-serif; transition:all 0.2s; white-space:nowrap;
-}
-.btn-del  { background:rgba(239,68,68,0.1); color:#f87171; }
-.btn-del:hover  { background:#ef4444; color:white; }
-.btn-add  { background:linear-gradient(135deg,#3b82f6,#8b5cf6); color:white; }
-.btn-add:hover  { opacity:0.85; }
-.btn-clr  { background:rgba(239,68,68,0.08); color:#f87171; border:1px solid rgba(239,68,68,0.15); padding:5px 12px; }
-.btn-clr:hover  { background:#ef4444; color:white; border-color:#ef4444; }
+        .bg-shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+        }
 
-/* Log */
-.log-scroll { max-height:280px; overflow-y:auto; }
-.log-scroll::-webkit-scrollbar { width:3px; }
-.log-scroll::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:3px; }
+        .shape-1 {
+            width: 500px;
+            height: 500px;
+            top: -200px;
+            right: -100px;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.15), transparent 70%);
+        }
 
-.log-row {
-    padding: 8px 18px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    display:flex; align-items:center; gap:10px;
-    font-size: 0.72rem;
-    transition: background 0.15s;
-}
-.log-row:last-child { border-bottom:none; }
-.log-row:hover { background:rgba(255,255,255,0.015); }
-.log-t { color:#475569; font-family:'JetBrains Mono',monospace; font-size:0.65rem; white-space:nowrap; }
-.log-m { font-weight:700; font-family:'JetBrains Mono',monospace; min-width:34px; color:#60a5fa; font-size:0.68rem; }
-.log-p { color:#94a3b8; flex:1; word-break:break-all; font-family:'JetBrains Mono',monospace; font-size:0.68rem; }
-.log-s { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:0.68rem; }
-.log-empty { padding:22px; color:#475569; font-size:0.78rem; text-align:center; }
+        .shape-2 {
+            width: 400px;
+            height: 400px;
+            bottom: -150px;
+            left: -50px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.12), transparent 70%);
+        }
 
-/* Toast */
-#adm-toast {
-    position:fixed; bottom:20px; right:20px;
-    background:rgba(15,23,42,0.96);
-    border:1px solid rgba(255,255,255,0.08);
-    color:#f1f5f9; padding:9px 16px; border-radius:10px;
-    font-size:0.78rem; font-weight:600;
-    box-shadow:0 8px 32px rgba(0,0,0,0.5);
-    transform:translateY(80px); opacity:0;
-    transition:all 0.35s cubic-bezier(.34,1.56,.64,1);
-    z-index:9999; pointer-events:none;
-}
-#adm-toast.show { transform:translateY(0); opacity:1; }
+        .shape-3 {
+            width: 300px;
+            height: 300px;
+            top: 40%;
+            left: 30%;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.08), transparent 70%);
+        }
 
-@media(max-width:580px) {
-    .adm-main { padding:66px 12px 36px; }
-    .sum-grid { grid-template-columns:1fr 1fr; }
-    .sc-val { font-size:1.2rem; }
-    th,td { padding:9px 12px; }
-    .key-form { flex-direction:column; }
-    .login-card { width:calc(100vw - 28px); padding:32px 22px; }
-}
-</style>
+        /* Navigation */
+        .adm-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            height: 64px;
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+        }
+
+        .nav-l {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-logo {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .nav-badge {
+            background: var(--accent-soft);
+            color: var(--accent);
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 500;
+            border: 1px solid var(--border);
+        }
+
+        .live-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--success-soft);
+            border: 1px solid rgba(5, 150, 105, 0.15);
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--success);
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+        }
+
+        .nav-r {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            padding: 8px 14px;
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .nav-btn:hover {
+            background: var(--accent-soft);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .nav-btn.danger:hover {
+            background: var(--error-soft);
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        /* Main Content */
+        .adm-main {
+            padding: 88px 32px 48px;
+            max-width: 1280px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Section Headers */
+        .sec-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 40px 0 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sec-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border), transparent);
+        }
+
+        /* Summary Cards */
+        .sum-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .sum-card {
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur-sm);
+            -webkit-backdrop-filter: var(--blur-sm);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sum-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .sum-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--border-light);
+        }
+
+        .sum-card:hover::before {
+            opacity: 0.3;
+        }
+
+        .sc-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .sc-val {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+
+        .sc-sub {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        /* Cards */
+        .adm-card {
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur-sm);
+            -webkit-backdrop-filter: var(--blur-sm);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 12px;
+            transition: box-shadow 0.2s;
+        }
+
+        .adm-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .adm-card-head {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .adm-card-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .adm-card-sub {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            padding: 14px 20px;
+            text-align: left;
+            background: var(--bg-soft);
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 14px 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        td.mono {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+            font-size: 12px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: var(--bg-soft);
+        }
+
+        /* Badges */
+        .bdg {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bdg-green {
+            background: var(--success-soft);
+            color: var(--success);
+            border: 1px solid rgba(5, 150, 105, 0.15);
+        }
+
+        .bdg-red {
+            background: var(--error-soft);
+            color: var(--error);
+            border: 1px solid rgba(220, 38, 38, 0.15);
+        }
+
+        .bdg-yellow {
+            background: var(--warning-soft);
+            color: var(--warning);
+            border: 1px solid rgba(217, 119, 6, 0.15);
+        }
+
+        .bdg-blue {
+            background: var(--info-soft);
+            color: var(--info);
+            border: 1px solid rgba(37, 99, 235, 0.15);
+        }
+
+        /* Progress Bars */
+        .prog {
+            height: 4px;
+            background: var(--border-light);
+            border-radius: 100px;
+            overflow: hidden;
+            min-width: 60px;
+        }
+
+        .prog span {
+            display: block;
+            height: 100%;
+            border-radius: 100px;
+        }
+
+        .p-red {
+            background: linear-gradient(90deg, var(--error), #f87171);
+            width: 33%;
+        }
+
+        .p-yellow {
+            background: linear-gradient(90deg, var(--warning), #fbbf24);
+            width: 60%;
+        }
+
+        .p-green {
+            background: linear-gradient(90deg, var(--success), #34d399);
+            width: 100%;
+        }
+
+        /* Key Form */
+        .key-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .key-form input {
+            flex: 1;
+            min-width: 120px;
+            padding: 10px 14px;
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .key-form input:focus {
+            border-color: var(--accent);
+            background: var(--bg);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .key-form input::placeholder {
+            color: var(--text-tertiary);
+            font-weight: 300;
+        }
+
+        .btn-xs {
+            padding: 10px 18px;
+            border-radius: 12px;
+            border: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-del {
+            background: var(--error-soft);
+            color: var(--error);
+            border: 1px solid rgba(220, 38, 38, 0.15);
+        }
+
+        .btn-del:hover {
+            background: var(--error);
+            color: white;
+            border-color: var(--error);
+        }
+
+        .btn-add {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-add:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-clr {
+            background: var(--bg-soft);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            font-size: 12px;
+        }
+
+        .btn-clr:hover {
+            background: var(--error-soft);
+            color: var(--error);
+            border-color: rgba(220, 38, 38, 0.15);
+        }
+
+        /* Log */
+        .log-scroll {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .log-scroll::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .log-row {
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            transition: background 0.15s;
+        }
+
+        .log-row:hover {
+            background: var(--bg-soft);
+        }
+
+        .log-t {
+            color: var(--text-tertiary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .log-m {
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            min-width: 40px;
+            color: var(--accent);
+            font-size: 11px;
+        }
+
+        .log-p {
+            color: var(--text-secondary);
+            flex: 1;
+            word-break: break-all;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+        }
+
+        .log-s {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .log-empty {
+            padding: 32px;
+            color: var(--text-tertiary);
+            font-size: 13px;
+            text-align: center;
+            font-style: italic;
+        }
+
+        /* Toast */
+        #adm-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--bg-glass-strong);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 12px 20px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+            z-index: 10000;
+            pointer-events: none;
+        }
+
+        #adm-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .adm-nav {
+                padding: 0 16px;
+            }
+
+            .adm-main {
+                padding: 80px 16px 32px;
+            }
+
+            .sum-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .sc-val {
+                font-size: 22px;
+            }
+
+            .key-form {
+                flex-direction: column;
+            }
+
+            .nav-logo span:not(:first-child) {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sum-grid {
+                grid-template-columns: 1fr;
+            }
+
+            th, td {
+                padding: 10px 12px;
+                font-size: 12px;
+            }
+
+            .login-card {
+                width: calc(100% - 32px);
+                padding: 32px 24px;
+            }
+        }
+    </style>
 </head>
 <body>
+
+<!-- Dashboard Background Shapes -->
+<div class="dashboard-bg">
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+    <div class="bg-shape shape-3"></div>
+</div>
 
 <!-- ═══════════════════════════ LOGIN PAGE ═══════════════════════════ -->
 <div id="loginPage">
     <div class="login-card">
         <div class="login-icon">⚙️</div>
-        <h2>Admin Panel</h2>
-        <p>Masukkan password untuk melanjutkan</p>
+        <h2>Admin Access</h2>
+        <p>Enter password to continue</p>
         <div class="input-group">
             <span class="ico">🔑</span>
-            <input class="login-input" type="password" id="pwInput" placeholder="Password..."/>
+            <input class="login-input" type="password" id="pwInput" placeholder="Password">
         </div>
-        <button class="login-submit" id="loginBtn">Masuk ke Dashboard</button>
+        <button class="login-submit" id="loginBtn">Sign in</button>
         <div class="login-error" id="loginErr"></div>
     </div>
 </div>
 
 <!-- ═══════════════════════════ DASHBOARD ═══════════════════════════ -->
 <div id="dashPage">
-
     <nav class="adm-nav">
         <div class="nav-l">
             <span class="nav-logo">⚙️ Himmel</span>
@@ -465,325 +873,391 @@ tr:hover td { background:rgba(255,255,255,0.015); }
     </nav>
 
     <div class="adm-main">
-
-        <!-- Overview -->
-        <div class="sec-label">📊 Overview</div>
+        <!-- Overview Section -->
+        <div class="sec-label">Overview</div>
         <div class="sum-grid">
-            <div class="sum-card sc-blue">
-                <div class="glow"></div>
-                <div class="sc-icon">⏱️</div>
-                <div class="sc-label">Uptime <span class="sc-ldot"></span></div>
+            <div class="sum-card">
+                <div class="sc-label">Uptime</div>
                 <div class="sc-val" id="sUptime">—</div>
-                <div class="sc-sub">server berjalan</div>
+                <div class="sc-sub">server running</div>
             </div>
-            <div class="sum-card sc-green">
-                <div class="glow"></div>
-                <div class="sc-icon">📥</div>
-                <div class="sc-label">Requests <span class="sc-ldot"></span></div>
+            <div class="sum-card">
+                <div class="sc-label">Requests</div>
                 <div class="sc-val" id="sReq">—</div>
-                <div class="sc-sub">session ini</div>
+                <div class="sc-sub">this session</div>
             </div>
-            <div class="sum-card sc-yellow">
-                <div class="glow"></div>
-                <div class="sc-icon">💾</div>
-                <div class="sc-label">RAM <span class="sc-ldot"></span></div>
+            <div class="sum-card">
+                <div class="sc-label">Memory</div>
                 <div class="sc-val" id="sRam">—</div>
                 <div class="sc-sub">heap used</div>
             </div>
-            <div class="sum-card sc-red">
-                <div class="glow"></div>
-                <div class="sc-icon">⚠️</div>
-                <div class="sc-label">Errors <span class="sc-ldot"></span></div>
+            <div class="sum-card">
+                <div class="sc-label">Errors</div>
                 <div class="sc-val" id="sErr">—</div>
                 <div class="sc-sub">5xx responses</div>
             </div>
-            <div class="sum-card sc-purple">
-                <div class="glow"></div>
-                <div class="sc-icon">📡</div>
+            <div class="sum-card">
                 <div class="sc-label">Routes</div>
                 <div class="sc-val" id="sRoutes">—</div>
-                <div class="sc-sub">endpoint aktif</div>
+                <div class="sc-sub">active endpoints</div>
             </div>
-            <div class="sum-card sc-pink">
-                <div class="glow"></div>
-                <div class="sc-icon">👥</div>
-                <div class="sc-label">Monthly Users <span class="sc-ldot"></span></div>
+            <div class="sum-card">
+                <div class="sc-label">Users</div>
                 <div class="sc-val" id="sUsers">—</div>
-                <div class="sc-sub">bulan ini</div>
+                <div class="sc-sub">monthly</div>
             </div>
         </div>
 
         <!-- Rate Limiter -->
-        <div class="sec-label">🚦 Rate Limiter</div>
+        <div class="sec-label">Rate Limiting</div>
         <div class="adm-card">
             <div class="adm-card-head">
-                <span class="adm-card-title">Limit per Kategori</span>
-                <span class="adm-card-sub">per IP / menit</span>
+                <span class="adm-card-title">Limit per category</span>
+                <span class="adm-card-sub">per IP / minute</span>
             </div>
             <table>
                 <thead>
-                    <tr><th>Endpoint</th><th>Max/mnt</th><th>Level</th><th>Status</th></tr>
+                    <tr>
+                        <th>Endpoint</th>
+                        <th>Max/min</th>
+                        <th>Usage</th>
+                        <th>Status</th>
+                    </tr>
                 </thead>
                 <tbody>
-                    <tr><td class="mono">/ai/*</td><td class="mono">10</td><td><div class="prog"><span class="p-red"></span></div></td><td><span class="bdg bdg-red">Ketat</span></td></tr>
-                    <tr><td class="mono">/downloader/*</td><td class="mono">10</td><td><div class="prog"><span class="p-red"></span></div></td><td><span class="bdg bdg-red">Ketat</span></td></tr>
-                    <tr><td class="mono">/tools/*</td><td class="mono">30</td><td><div class="prog"><span class="p-yellow"></span></div></td><td><span class="bdg bdg-yellow">Normal</span></td></tr>
-                    <tr><td class="mono">/random/*</td><td class="mono">30</td><td><div class="prog"><span class="p-yellow"></span></div></td><td><span class="bdg bdg-yellow">Normal</span></td></tr>
-                    <tr><td class="mono">/search/*</td><td class="mono">60</td><td><div class="prog"><span class="p-green"></span></div></td><td><span class="bdg bdg-green">Ringan</span></td></tr>
-                    <tr><td class="mono">/info/*</td><td class="mono">60</td><td><div class="prog"><span class="p-green"></span></div></td><td><span class="bdg bdg-green">Ringan</span></td></tr>
+                    <tr>
+                        <td class="mono">/ai/*</td>
+                        <td class="mono">10</td>
+                        <td><div class="prog"><span class="p-red"></span></div></td>
+                        <td><span class="bdg bdg-red">Strict</span></td>
+                    </tr>
+                    <tr>
+                        <td class="mono">/downloader/*</td>
+                        <td class="mono">10</td>
+                        <td><div class="prog"><span class="p-red"></span></div></td>
+                        <td><span class="bdg bdg-red">Strict</span></td>
+                    </tr>
+                    <tr>
+                        <td class="mono">/tools/*</td>
+                        <td class="mono">30</td>
+                        <td><div class="prog"><span class="p-yellow"></span></div></td>
+                        <td><span class="bdg bdg-yellow">Normal</span></td>
+                    </tr>
+                    <tr>
+                        <td class="mono">/random/*</td>
+                        <td class="mono">30</td>
+                        <td><div class="prog"><span class="p-yellow"></span></div></td>
+                        <td><span class="bdg bdg-yellow">Normal</span></td>
+                    </tr>
+                    <tr>
+                        <td class="mono">/search/*</td>
+                        <td class="mono">60</td>
+                        <td><div class="prog"><span class="p-green"></span></div></td>
+                        <td><span class="bdg bdg-green">Relaxed</span></td>
+                    </tr>
+                    <tr>
+                        <td class="mono">/info/*</td>
+                        <td class="mono">60</td>
+                        <td><div class="prog"><span class="p-green"></span></div></td>
+                        <td><span class="bdg bdg-green">Relaxed</span></td>
+                    </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- API Keys -->
-        <div class="sec-label">🔑 API Key Manager</div>
+        <!-- API Key Manager -->
+        <div class="sec-label">API Keys</div>
         <div class="adm-card">
             <div class="adm-card-head">
-                <span class="adm-card-title">Kelola API Keys</span>
-                <span class="adm-card-sub">dari settings.json</span>
+                <span class="adm-card-title">Manage keys</span>
+                <span class="adm-card-sub">from settings.json</span>
             </div>
             <table>
-                <thead><tr><th>Key</th><th>Label</th><th>Akses</th><th>Status</th><th>Aksi</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Key</th>
+                        <th>Label</th>
+                        <th>Access</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
                 <tbody id="keyBody">
                     <tr><td colspan="5" class="log-empty">Loading...</td></tr>
                 </tbody>
             </table>
             <div class="key-form">
-                <input type="text" id="nKey"    placeholder="API Key baru"/>
-                <input type="text" id="nLabel"  placeholder="Label"/>
-                <input type="text" id="nAccess" placeholder="Akses (ai / all)" value="ai"/>
-                <button class="btn-xs btn-add" onclick="addKey()">+ Tambah</button>
+                <input type="text" id="nKey" placeholder="New API key">
+                <input type="text" id="nLabel" placeholder="Label">
+                <input type="text" id="nAccess" placeholder="Access (ai/all)" value="ai">
+                <button class="btn-xs btn-add" onclick="addKey()">Add</button>
             </div>
         </div>
 
-        <!-- Endpoints -->
-        <div class="sec-label">📡 Semua Endpoint</div>
+        <!-- Endpoints List -->
+        <div class="sec-label">All Endpoints</div>
         <div class="adm-card">
             <div class="adm-card-head">
-                <span class="adm-card-title">Daftar API</span>
+                <span class="adm-card-title">API list</span>
                 <span class="adm-card-sub" id="epCount">—</span>
             </div>
             <table>
-                <thead><tr><th>#</th><th>Nama</th><th>Kategori</th><th>Path</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Path</th>
+                    </tr>
+                </thead>
                 <tbody id="epBody">
                     <tr><td colspan="4" class="log-empty">Loading...</td></tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Log -->
-        <div class="sec-label">📋 Activity Log</div>
+        <!-- Activity Log -->
+        <div class="sec-label">Activity</div>
         <div class="adm-card">
             <div class="adm-card-head">
-                <span class="adm-card-title">Request Log</span>
-                <button class="btn-xs btn-clr" onclick="clearLog()">🗑 Clear</button>
+                <span class="adm-card-title">Request log</span>
+                <button class="btn-xs btn-clr" onclick="clearLog()">Clear</button>
             </div>
             <div class="log-scroll" id="logList">
-                <div class="log-empty">Belum ada log. Hit beberapa endpoint dulu.</div>
+                <div class="log-empty">No activity yet</div>
             </div>
         </div>
-
-    </div><!-- /adm-main -->
-</div><!-- /dashPage -->
+    </div>
+</div>
 
 <div id="adm-toast"></div>
 
 <script>
-/* ═══════ CONFIG ═══════ */
-const SESS_KEY   = 'himmel_admin_ok';
-const ADMIN_PASS = 'M0NPI'; // ganti sesuai keinginan
+    // Configuration
+    const SESS_KEY = 'himmel_admin_ok';
+    const ADMIN_PASS = 'M0NPI'; // Change as needed
 
-/* ═══════ HELPERS ═══════ */
-function toast(msg) {
-    const el = document.getElementById('adm-toast');
-    el.textContent = msg;
-    el.classList.add('show');
-    clearTimeout(el._t);
-    el._t = setTimeout(() => el.classList.remove('show'), 2500);
-}
-
-/* ═══════ LOGIN ═══════ */
-function tryLogin() {
-    const pw = document.getElementById('pwInput').value;
-    if (pw === ADMIN_PASS) {
-        sessionStorage.setItem(SESS_KEY, '1');
-        document.getElementById('loginPage').style.display = 'none';
-        document.getElementById('dashPage').style.display  = 'block';
-        bootDash();
-    } else {
-        const err = document.getElementById('loginErr');
-        err.textContent = '❌ Password salah!';
-        err.style.animation = 'none';
-        void err.offsetWidth; // reflow
-        err.style.animation = 'shake 0.3s ease';
-        document.getElementById('pwInput').value = '';
-        setTimeout(() => { err.textContent = ''; }, 3000);
+    // Toast helper
+    function toast(msg) {
+        const el = document.getElementById('adm-toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(el._timer);
+        el._timer = setTimeout(() => el.classList.remove('show'), 2500);
     }
-}
 
-document.getElementById('loginBtn').addEventListener('click', tryLogin);
-document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
-
-function doLogout() {
-    sessionStorage.removeItem(SESS_KEY);
-    location.reload();
-}
-
-/* Auto-login jika sudah pernah login di session ini */
-if (sessionStorage.getItem(SESS_KEY) === '1') {
-    document.getElementById('loginPage').style.display = 'none';
-    document.getElementById('dashPage').style.display  = 'block';
-}
-
-/* ═══════ LIVE UPTIME TICKER ═══════ */
-let _sec = 0, _tickOn = false;
-
-function fmtSec(s) {
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    const ss = s % 60;
-    if (h > 0) return h + 'h ' + String(m).padStart(2,'0') + 'm ' + String(ss).padStart(2,'0') + 's';
-    if (m > 0) return m + 'm ' + String(ss).padStart(2,'0') + 's';
-    return ss + 's';
-}
-
-function startTick() {
-    if (_tickOn) return;
-    _tickOn = true;
-    setInterval(() => {
-        _sec++;
-        const el = document.getElementById('sUptime');
-        if (el) el.textContent = fmtSec(_sec);
-    }, 1000);
-}
-
-/* ═══════ FETCH HEALTH ═══════ */
-async function fetchHealth() {
-    try {
-        const d = await fetch('/health').then(r => r.json());
-
-        if (d.uptime) {
-            const m = d.uptime.match(/(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s)?/);
-            _sec = (parseInt(m?.[1]||0)*3600) + (parseInt(m?.[2]||0)*60) + parseInt(m?.[3]||0);
-            const el = document.getElementById('sUptime');
-            if (el) el.textContent = fmtSec(_sec);
-            startTick();
+    // Login
+    function tryLogin() {
+        const pw = document.getElementById('pwInput').value;
+        if (pw === ADMIN_PASS) {
+            sessionStorage.setItem(SESS_KEY, '1');
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('dashPage').style.display = 'block';
+            bootDashboard();
+        } else {
+            const err = document.getElementById('loginErr');
+            err.textContent = 'Incorrect password';
+            err.style.animation = 'shake 0.3s ease';
+            document.getElementById('pwInput').value = '';
+            setTimeout(() => {
+                err.textContent = '';
+                err.style.animation = '';
+            }, 2000);
         }
-
-        const safe = v => (v === undefined || v === null) ? '—' : String(v);
-        document.getElementById('sReq').textContent = (d.requests || 0).toLocaleString();
-        document.getElementById('sErr').textContent = (d.errors   || 0).toLocaleString();
-        document.getElementById('sRam').textContent = safe(d.memory);
-    } catch (e) {}
-}
-
-/* ═══════ MONTHLY USERS ═══════ */
-function loadUsers() {
-    const now = new Date();
-    const key = 'himmel_visitors_' + now.getFullYear() + '_' + (now.getMonth() + 1);
-    document.getElementById('sUsers').textContent = parseInt(localStorage.getItem(key) || '0').toLocaleString('id-ID');
-}
-
-/* ═══════ SETTINGS (keys + endpoints) ═══════ */
-async function loadSettings() {
-    try {
-        const s = await fetch('/src/settings.json').then(r => r.json());
-
-        /* Routes */
-        const total = s.categories.reduce((a, c) => a + c.items.length, 0);
-        document.getElementById('sRoutes').textContent = total;
-        document.getElementById('epCount').textContent = total + ' endpoint';
-
-        /* API Keys */
-        const keys = s.apiSettings?.apiKeys?.keys || [];
-        document.getElementById('keyBody').innerHTML = keys.length === 0
-            ? '<tr><td colspan="5" class="log-empty">Belum ada API key</td></tr>'
-            : keys.map(k => '<tr>' +
-                '<td class="mono">' + k.key + '</td>' +
-                '<td>' + (k.label || '-') + '</td>' +
-                '<td>' + (k.access || []).map(a => '<span class="bdg bdg-blue">' + a + '</span>').join(' ') + '</td>' +
-                '<td><span class="bdg bdg-green">Active</span></td>' +
-                '<td><button class="btn-xs btn-del" onclick="toast(\'Edit settings.json di server untuk hapus key\')">Hapus</button></td>' +
-              '</tr>').join('');
-
-        /* Endpoints */
-        let i = 1;
-        document.getElementById('epBody').innerHTML = s.categories.flatMap(cat =>
-            cat.items.map(item =>
-                '<tr>' +
-                '<td class="mono" style="color:#475569">' + (i++) + '</td>' +
-                '<td>' + item.name + '</td>' +
-                '<td><span class="bdg bdg-purple">' + cat.name.split(' ')[0] + '</span></td>' +
-                '<td class="mono" style="color:#60a5fa;font-size:0.7rem">' + item.path + '</td>' +
-                '</tr>'
-            )
-        ).join('');
-    } catch (e) { toast('Gagal load settings.json'); }
-}
-
-/* ═══════ KEY FORM ═══════ */
-function addKey() {
-    const key = document.getElementById('nKey').value.trim();
-    if (!key) { toast('⚠️ Key tidak boleh kosong!'); return; }
-    document.getElementById('nKey').value   = '';
-    document.getElementById('nLabel').value = '';
-    toast('✅ Tambahkan "' + key + '" ke settings.json secara manual.');
-}
-
-/* ═══════ ACTIVITY LOG ═══════ */
-const _log = JSON.parse(sessionStorage.getItem('himmel_alog') || '[]');
-
-function saveLog()   { sessionStorage.setItem('himmel_alog', JSON.stringify(_log.slice(-150))); }
-function clearLog()  { _log.length = 0; saveLog(); renderLog(); toast('🗑 Log dihapus'); }
-
-function renderLog() {
-    const c = document.getElementById('logList');
-    if (!_log.length) {
-        c.innerHTML = '<div class="log-empty">Belum ada log.</div>';
-        return;
     }
-    c.innerHTML = [..._log].reverse().map(l => {
-        const col = l.s >= 500 ? '#f87171' : l.s >= 400 ? '#fbbf24' : '#4ade80';
-        return '<div class="log-row">' +
-            '<span class="log-t">' + l.t + '</span>' +
-            '<span class="log-m">' + l.m + '</span>' +
-            '<span class="log-p">' + l.p + '</span>' +
-            '<span class="log-s" style="color:' + col + '">' + l.s + '</span>' +
-        '</div>';
-    }).join('');
-}
 
-/* Intercept fetch untuk log */
-const _origFetch = window.fetch.bind(window);
-window.fetch = async function(url, opts) {
-    const res = await _origFetch(url, opts);
-    const u = typeof url === 'string' ? url : (url.url || '');
-    const skip = ['/health', 'settings.json', 'ipify', 'ipapi', 'my-ip', 'uguu', 'googleapis'];
-    if (!skip.some(s => u.includes(s))) {
-        _log.push({
-            t: new Date().toLocaleTimeString('id-ID'),
-            m: (opts?.method || 'GET').toUpperCase(),
-            p: u.replace(location.origin, '') || u,
-            s: res.status
-        });
+    document.getElementById('loginBtn').addEventListener('click', tryLogin);
+    document.getElementById('pwInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') tryLogin();
+    });
+
+    function doLogout() {
+        sessionStorage.removeItem(SESS_KEY);
+        location.reload();
+    }
+
+    // Auto-login
+    if (sessionStorage.getItem(SESS_KEY) === '1') {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('dashPage').style.display = 'block';
+    }
+
+    // Uptime counter
+    let uptimeSeconds = 0;
+    let tickStarted = false;
+
+    function formatUptime(seconds) {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        if (h > 0) return `${h}h ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`;
+        if (m > 0) return `${m}m ${s.toString().padStart(2, '0')}s`;
+        return `${s}s`;
+    }
+
+    function startUptimeCounter() {
+        if (tickStarted) return;
+        tickStarted = true;
+        setInterval(() => {
+            uptimeSeconds++;
+            const el = document.getElementById('sUptime');
+            if (el) el.textContent = formatUptime(uptimeSeconds);
+        }, 1000);
+    }
+
+    // Fetch health data
+    async function fetchHealth() {
+        try {
+            const res = await fetch('/health');
+            const data = await res.json();
+
+            if (data.uptime) {
+                const match = data.uptime.match(/(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s)?/);
+                uptimeSeconds = (parseInt(match?.[1] || 0) * 3600) +
+                               (parseInt(match?.[2] || 0) * 60) +
+                                parseInt(match?.[3] || 0);
+                document.getElementById('sUptime').textContent = formatUptime(uptimeSeconds);
+                startUptimeCounter();
+            }
+
+            document.getElementById('sReq').textContent = (data.requests || 0).toLocaleString();
+            document.getElementById('sErr').textContent = (data.errors || 0).toLocaleString();
+            document.getElementById('sRam').textContent = data.memory || '—';
+        } catch (e) {
+            // Silent fail
+        }
+    }
+
+    // Monthly users
+    function loadUsers() {
+        const now = new Date();
+        const key = `himmel_visitors_${now.getFullYear()}_${now.getMonth() + 1}`;
+        document.getElementById('sUsers').textContent = parseInt(localStorage.getItem(key) || '0').toLocaleString();
+    }
+
+    // Load settings
+    async function loadSettings() {
+        try {
+            const res = await fetch('/src/settings.json');
+            const data = await res.json();
+
+            // Count endpoints
+            const total = data.categories.reduce((acc, cat) => acc + cat.items.length, 0);
+            document.getElementById('sRoutes').textContent = total;
+            document.getElementById('epCount').textContent = `${total} endpoints`;
+
+            // API Keys
+            const keys = data.apiSettings?.apiKeys?.keys || [];
+            document.getElementById('keyBody').innerHTML = keys.length === 0
+                ? '<tr><td colspan="5" class="log-empty">No API keys configured</td></tr>'
+                : keys.map(k => `
+                    <tr>
+                        <td class="mono">${k.key}</td>
+                        <td>${k.label || '—'}</td>
+                        <td>${(k.access || []).map(a => `<span class="bdg bdg-blue">${a}</span>`).join(' ')}</td>
+                        <td><span class="bdg bdg-green">Active</span></td>
+                        <td><button class="btn-xs btn-del" onclick="toast('Edit settings.json manually')">Remove</button></td>
+                    </tr>
+                `).join('');
+
+            // Endpoints
+            let index = 1;
+            document.getElementById('epBody').innerHTML = data.categories.flatMap(cat =>
+                cat.items.map(item => `
+                    <tr>
+                        <td class="mono" style="color: var(--text-tertiary);">${index++}</td>
+                        <td>${item.name}</td>
+                        <td><span class="bdg bdg-blue">${cat.name.split(' ')[0]}</span></td>
+                        <td class="mono" style="color: var(--accent);">${item.path}</td>
+                    </tr>
+                `)
+            ).join('');
+        } catch (e) {
+            toast('Failed to load settings');
+        }
+    }
+
+    // Add key (placeholder)
+    function addKey() {
+        const key = document.getElementById('nKey').value.trim();
+        if (!key) {
+            toast('Key cannot be empty');
+            return;
+        }
+        document.getElementById('nKey').value = '';
+        document.getElementById('nLabel').value = '';
+        toast(`Add "${key}" to settings.json manually`);
+    }
+
+    // Activity log
+    const logEntries = JSON.parse(sessionStorage.getItem('himmel_log') || '[]');
+
+    function saveLog() {
+        sessionStorage.setItem('himmel_log', JSON.stringify(logEntries.slice(-100)));
+    }
+
+    function clearLog() {
+        logEntries.length = 0;
         saveLog();
         renderLog();
+        toast('Log cleared');
     }
-    return res;
-};
 
-/* ═══════ BOOT ═══════ */
-function bootDash() {
-    fetchHealth();
-    loadSettings();
-    loadUsers();
-    renderLog();
-    setInterval(fetchHealth, 10000);
-    setInterval(loadUsers,   60000);
-}
+    function renderLog() {
+        const container = document.getElementById('logList');
+        if (logEntries.length === 0) {
+            container.innerHTML = '<div class="log-empty">No activity yet</div>';
+            return;
+        }
 
-/* Auto boot jika sudah login */
-if (sessionStorage.getItem(SESS_KEY) === '1') bootDash();
+        container.innerHTML = [...logEntries].reverse().map(entry => {
+            const color = entry.status >= 500 ? 'var(--error)' :
+                         entry.status >= 400 ? 'var(--warning)' : 'var(--success)';
+            return `
+                <div class="log-row">
+                    <span class="log-t">${entry.time}</span>
+                    <span class="log-m">${entry.method}</span>
+                    <span class="log-p">${entry.path}</span>
+                    <span class="log-s" style="color: ${color}">${entry.status}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Intercept fetch for logging
+    const originalFetch = window.fetch;
+    window.fetch = async function(url, options = {}) {
+        const response = await originalFetch(url, options);
+        const urlStr = typeof url === 'string' ? url : url.url || '';
+        
+        const exclude = ['/health', 'settings.json', 'ipify', 'ipapi'];
+        if (!exclude.some(e => urlStr.includes(e))) {
+            logEntries.push({
+                time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+                method: (options.method || 'GET').toUpperCase(),
+                path: urlStr.replace(location.origin, '') || urlStr,
+                status: response.status
+            });
+            saveLog();
+            renderLog();
+        }
+        return response;
+    };
+
+    // Bootstrap dashboard
+    function bootDashboard() {
+        fetchHealth();
+        loadSettings();
+        loadUsers();
+        renderLog();
+        setInterval(fetchHealth, 10000);
+        setInterval(loadUsers, 60000);
+    }
+
+    // Auto-boot if logged in
+    if (sessionStorage.getItem(SESS_KEY) === '1') {
+        bootDashboard();
+    }
 </script>
 </body>
 </html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="https://files.catbox.moe/rbfc5x.jpg" type="image/jpeg">
+    <title id="page">Himmel API</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Simple Clouds - Small and Minimal -->
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    
+    <!-- Aesthetic Loading Screen -->
+    <div id="loadingScreen">
+        <div class="loader-container">
+            <!-- Animated Circles Background -->
+            <div class="loader-circles">
+                <div class="circle circle-1"></div>
+                <div class="circle circle-2"></div>
+                <div class="circle circle-3"></div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="loader-content">
+                <!-- GIF Container -->
+                <div class="gif-frame">
+                    <div class="gif-wrapper">
+                        <img src="https://files.catbox.moe/tbk8kv.gif" alt="Loading Animation" class="loader-gif">
+                        <div class="gif-reflection"></div>
+                    </div>
+                </div>
+                
+                <!-- Loading Text with Dots Animation -->
+                <div class="loader-text">
+                    <span class="text-particle" style="--i:1">l</span>
+                    <span class="text-particle" style="--i:2">o</span>
+                    <span class="text-particle" style="--i:3">a</span>
+                    <span class="text-particle" style="--i:4">d</span>
+                    <span class="text-particle" style="--i:5">i</span>
+                    <span class="text-particle" style="--i:6">n</span>
+                    <span class="text-particle" style="--i:7">g</span>
+                    <span class="dot-particle" style="--i:8">.</span>
+                    <span class="dot-particle" style="--i:9">.</span>
+                    <span class="dot-particle" style="--i:10">.</span>
+                </div>
+                
+                <!-- Minimal Progress Bar -->
+                <div class="progress-minimal">
+                    <div class="progress-minimal-bar" id="loadingProgressBar"></div>
+                </div>
+                
+                <!-- Subtle Glow Effect -->
+                <div class="loader-glow"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container" style="display:flex;align-items:center;justify-content:space-between;">
+            <a class="navbar-brand" style="display: flex; align-items: center;">
+                <span id="header" class="me-2"></span>
+                <div id="versionHeader" class="version-badge"></div>
+            </a>
+            <div class="nav-actions">
+                <div class="api-call-counter" id="apiCallCounter" title="Total API calls this session">
+                    <span class="counter-icon">⚡</span>
+                    <span id="counterVal">0</span>
+                    <span class="counter-label">calls</span>
+                </div>
+                <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
+                <a href="/admin.html" class="admin-btn" title="Admin Dashboard">⚙️</a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Banner Image -->
+        <div class="banner-wrapper">
+            <img id="dynamicImage" class="banner mb-4" src="">
+        </div>
+        
+        <!-- Title Section -->
+        <div id="nameContainer" class="name-container">
+            <h1 id="name"></h1>
+            <div id="version" class="version-badge"></div>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card" id="statUptime">
+                <div class="stat-icon">⏱️</div>
+                <div class="stat-info">
+                    <div class="stat-label">Server Uptime</div>
+                    <div class="stat-value" id="valUptime">Loading...</div>
+                </div>
+            </div>
+            <div class="stat-card" id="statUsers">
+                <div class="stat-icon">👥</div>
+                <div class="stat-info">
+                    <div class="stat-label">Monthly Users</div>
+                    <div class="stat-value" id="valUsers">-</div>
+                </div>
+            </div>
+            <div class="stat-card" id="statDevice">
+                <div class="stat-icon">📱</div>
+                <div class="stat-info">
+                    <div class="stat-label">Your Device</div>
+                    <div class="stat-value" id="valDevice">Detecting...</div>
+                </div>
+            </div>
+            <div class="stat-card" id="statBattery">
+                <div class="stat-icon">🔋</div>
+                <div class="stat-info">
+                    <div class="stat-label">Battery</div>
+                    <div class="stat-value" id="valBattery">-</div>
+                </div>
+            </div>
+            <div class="stat-card stat-card-wide" id="statIP">
+                <div class="stat-icon">🌐</div>
+                <div class="stat-info">
+                    <div class="stat-label">Your IP Address</div>
+                    <div class="stat-value" id="valIP">Fetching...</div>
+                </div>
+            </div>
+        </div>
+
+                <!-- Description -->
+        <p id="description" class="lead mb-3"></p>
+        
+        <!-- API Links -->
+        <div id="apiLinks" class="mb-5"></div>
+        
+        <!-- Search Bar -->
+        <div class="search-wrapper">
+            <input type="text" id="searchInput" class="form-control mb-5" placeholder="Cari API...">
+        </div>
+        
+        <!-- API Content -->
+        <div class="tab-content" id="apiContent"></div>
+    </div>
+    
+    <!-- Modal for API Response -->
+    <div class="modal fade" id="apiResponseModal" tabindex="-1" aria-labelledby="apiResponseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" id="modalDialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title" id="apiResponseModalLabel"></h5>
+                        <p class="modal-desc text-muted mb-0" id="apiResponseModalDesc" style="font-size: 14px;"></p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <pre id="apiEndpoint" class="api-endpoint"></pre>
+                    <div id="apiQueryInputContainer"></div>
+                    <div id="apiResponseLoading" class="d-none d-flex justify-content-center align-items-center" style="height: 100px;">
+                        <div class="spinner-border custom-spinner" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <pre id="apiResponseContent" class="d-none mt-2 api-response"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button id="submitQueryBtn" class="btn btn-himmel">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -3,11 +3,9 @@ const axios = require('axios');
 module.exports = function(app) {
     const API = {
         base: 'https://embed.dlsrv.online',
-        jina: 'https://r.jina.ai/',
         endpoint: {
             info: '/api/info',
-            downloadMp3: '/api/download/mp3',
-            full: '/v1/full'
+            downloadMp4: '/api/download/mp4'
         }
     };
 
@@ -26,42 +24,8 @@ module.exports = function(app) {
         return response.data;
     }
 
-    async function getMp3Formats(videoId) {
-        try {
-            const url = `${API.jina}${API.base}${API.endpoint.full}?videoId=${videoId}`;
-            const data = await request('GET', url);
-            
-            const rows = data.match(/\|\s*(\d+kbps)\s*\|\s*mp3\s*\|[^|]+\|/g) || [];
-            
-            const formats = await Promise.all(rows.map(async row => {
-                const quality = row.match(/(\d+kbps)/)?.[1];
-                if (!quality) return null;
-                
-                const dl = await request('POST', `${API.base}${API.endpoint.downloadMp3}`, {
-                    videoId,
-                    format: 'mp3',
-                    quality: quality.replace('kbps', '')
-                });
-                
-                if (dl.status === 'tunnel') {
-                    return {
-                        quality,
-                        url: dl.url,
-                        filename: dl.filename,
-                        duration: dl.duration
-                    };
-                }
-                return null;
-            }));
-            
-            return formats.filter(Boolean);
-        } catch {
-            return [];
-        }
-    }
-
-    app.get("/downloader/ytmp3", async (req, res) => {
-        const { url } = req.query;
+    app.get("/downloader/ytmp4", async (req, res) => {
+        const { url, quality = '720' } = req.query;
 
         if (!url) {
             return res.status(400).json({
@@ -87,23 +51,20 @@ module.exports = function(app) {
                 throw new Error('Gagal mendapatkan info video');
             }
 
-            // Get MP3 formats
-            const mp3Formats = await getMp3Formats(videoId);
-
-            // Get other audio formats (m4a, opus, etc)
-            const otherAudio = await Promise.all(
+            // Get video formats
+            const videoFormats = await Promise.all(
                 info.info.formats
-                    .filter(f => f.type === 'audio' && f.format !== 'mp3')
+                    .filter(f => f.type === 'video')
                     .map(async f => {
-                        const dl = await request('POST', `${API.base}${API.endpoint.downloadMp3}`, {
+                        const dl = await request('POST', `${API.base}${API.endpoint.downloadMp4}`, {
                             videoId,
                             format: f.format,
-                            quality: ''
+                            quality: f.quality.replace('p', '')
                         });
                         
                         if (dl.status === 'tunnel') {
                             return {
-                                type: 'audio',
+                                quality: f.quality,
                                 format: f.format,
                                 fileSize: f.fileSize,
                                 url: dl.url,
@@ -115,16 +76,25 @@ module.exports = function(app) {
                     })
             );
 
+            // Filter berdasarkan quality
+            let selectedFormats = videoFormats.filter(Boolean);
+            if (quality) {
+                const filtered = selectedFormats.filter(f => 
+                    f.quality.toLowerCase().includes(quality.toLowerCase())
+                );
+                if (filtered.length > 0) {
+                    selectedFormats = filtered;
+                }
+            }
+
             const { title, author, duration, thumbnail } = info.info;
 
             res.json({
                 status: true,
                 data: {
                     info: { title, author, duration, thumbnail },
-                    formats: {
-                        mp3: mp3Formats,
-                        other: otherAudio.filter(Boolean)
-                    }
+                    formats: selectedFormats,
+                    total: selectedFormats.length
                 }
             });
 

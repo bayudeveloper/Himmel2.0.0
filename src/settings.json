@@ -53,9 +53,9 @@
           "path": "/ai/nanana?url=&prompt=&apikey="
         },
         {
-          "name": "Sora 2",
-          "desc": "Video generator",
-          "path": "/ai/sora?prompt=&apikey="
+          "name": "HD Video",
+          "desc": "HD video with AI",
+          "path": "/ai/hdvideo?url=&apikey="
         }
       ]
     },

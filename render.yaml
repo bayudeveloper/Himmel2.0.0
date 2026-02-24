@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: himmel-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true

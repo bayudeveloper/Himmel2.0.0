@@ -39,10 +39,31 @@ class TempMail {
     }
 
     extractCode(html) {
-        const spaced = html.match(/(\d\s){5}\d/);
-        if (spaced) return spaced[0].replace(/\s/g, '');
-        const m = html.match(/(\d{6})/);
-        return m ? m[1] : null;
+        // Format email nanobana: "9 1 4 8 7 3" (spasi antara tiap digit)
+        // Pattern: digit spasi digit spasi... x6
+        const spaced = html.match(/(\d)\s(\d)\s(\d)\s(\d)\s(\d)\s(\d)/);
+        if (spaced) return spaced.slice(1, 7).join('');
+
+        // Fallback 1: 6 digit berurutan langsung
+        const direct = html.match(/\b(\d{6})\b/);
+        if (direct) return direct[1];
+
+        // Fallback 2: strip semua HTML tag, lalu cari 6 digit
+        const stripped = html
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/&nbsp;/gi, ' ')
+            .replace(/&#\d+;/g, ' ')
+            .replace(/&[a-z]+;/gi, ' ')
+            .replace(/\s+/g, ' ');
+
+        const fromStripped = stripped.match(/\b(\d{6})\b/);
+        if (fromStripped) return fromStripped[1];
+
+        // Fallback 3: ambil semua digit, gabung, ambil 6 pertama
+        const allDigits = stripped.replace(/\D/g, '');
+        if (allDigits.length >= 6) return allDigits.substring(0, 6);
+
+        return null;
     }
 
     async waitForCode(timeoutMs = 90000) {
@@ -110,7 +131,7 @@ async function generateSora(prompt, aspect_ratio, n_frames) {
 
     // 2. Tunggu OTP
     const code = await mail.waitForCode(90000);
-    if (!code) throw new Error('OTP timeout — coba lagi.');
+    if (!code) throw new Error('OTP timeout — email tidak menerima kode. Coba lagi.');
 
     // 3. Login
     const csrfRes = await req('GET', 'https://www.nanobana.net/api/auth/csrf',
@@ -126,8 +147,8 @@ async function generateSora(prompt, aspect_ratio, n_frames) {
     );
     extractCookies(cookies, loginRes);
 
-    await req('GET',  'https://www.nanobana.net/api/auth/session',    null, { ...baseHeaders, Cookie: cookieString(cookies) }, 15000);
-    await req('POST', 'https://www.nanobana.net/api/get-user-info',   '',   { ...baseHeaders, Cookie: cookieString(cookies) }, 15000);
+    await req('GET',  'https://www.nanobana.net/api/auth/session',  null, { ...baseHeaders, Cookie: cookieString(cookies) }, 15000);
+    await req('POST', 'https://www.nanobana.net/api/get-user-info', '',   { ...baseHeaders, Cookie: cookieString(cookies) }, 15000);
 
     // 4. Submit generate
     const submitRes = await req('POST',
@@ -161,8 +182,8 @@ async function generateSora(prompt, aspect_ratio, n_frames) {
     }
 
     let videoUrl = null;
-    if (result.resultUrls?.length > 0)   videoUrl = result.resultUrls[0];
-    else if (result.saved?.length > 0)    videoUrl = result.saved[0]?.url;
+    if (result.resultUrls?.length > 0)  videoUrl = result.resultUrls[0];
+    else if (result.saved?.length > 0)  videoUrl = result.saved[0]?.url;
     if (!videoUrl) throw new Error('Video selesai tapi URL tidak ditemukan.');
 
     return videoUrl;
@@ -192,7 +213,6 @@ module.exports = function(app) {
 
         try {
             const videoUrl = await generateSora(prompt, ratio, parseInt(frames));
-
             return res.json({
                 status: true,
                 prompt,

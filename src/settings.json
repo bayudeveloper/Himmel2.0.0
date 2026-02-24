@@ -45,17 +45,17 @@
         {
           "name": "Text To Image",
           "desc": "Generate image with text",
-          "path": "/ai/txt2img?prompt="
+          "path": "/ai/txt2img?prompt=&apikey="
         },
         {
           "name": "NanoBanana",
           "desc": "editing photo",
-          "path": "/ai/nanana?url=&prompt="
+          "path": "/ai/nanana?url=&prompt=&apikey="
         },
         {
           "name": "Sora 2",
           "desc": "Video generator",
-          "path": "/ai/sora?prompt="
+          "path": "/ai/sora?prompt=&apikey="
         }
       ]
     },
@@ -114,12 +114,12 @@
         },
         {
           "name": "Tri Check",
-          "desc": "Check 3 (Tri) Indonesia SIM card status",
+          "desc": "Check 3 Sim",
           "path": "/info/tricheck?nomor="
         },
         {
           "name": "Cek Kuota XL & Axis",
-          "desc": "Check XL/AXIS quota, package, and subscriber information",
+          "desc": "Check XL/AXIS Sim",
           "path": "/info/cekxL?nomor="
         },
         {
@@ -186,6 +186,11 @@
           "name": "Free Fire Tools",
           "desc": "Free Fire utilities",
           "path": "/tools/fftools?type=all"
+        },
+        {
+          "name": "QR Code Generator",
+          "desc": "Generate QR Code from any text or URL",
+          "path": "/tools/qrcode?text="
         }
       ]
     }

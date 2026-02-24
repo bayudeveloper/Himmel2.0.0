@@ -1,607 +1,518 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Dashboard — Himmel API</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Admin — Himmel API</title>
     <link rel="icon" href="https://files.catbox.moe/rbfc5x.jpg" type="image/jpeg">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #f0f4ff;
-            --bg2: #e8edf8;
-            --surface: #ffffff;
-            --surface2: #f8fafc;
-            --border: #e2e8f0;
-            --text: #1e293b;
+            --bg: #0a0f1e;
+            --surface: rgba(255,255,255,0.04);
+            --surface2: rgba(255,255,255,0.07);
+            --border: rgba(255,255,255,0.08);
+            --border2: rgba(255,255,255,0.12);
+            --text: #e2e8f0;
             --text2: #64748b;
+            --text3: #94a3b8;
             --accent: #3b82f6;
-            --accent2: #8b5cf6;
             --green: #22c55e;
             --red: #ef4444;
             --yellow: #f59e0b;
-            --card-shadow: 0 2px 16px rgba(59,130,246,0.08);
-            --nav-bg: rgba(255,255,255,0.85);
         }
-        [data-theme="dark"] {
-            --bg: #0f172a;
-            --bg2: #1e293b;
-            --surface: #1e293b;
-            --surface2: #263349;
-            --border: #334155;
-            --text: #f1f5f9;
-            --text2: #94a3b8;
-            --card-shadow: 0 2px 16px rgba(0,0,0,0.3);
-            --nav-bg: rgba(15,23,42,0.92);
-        }
-
         * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Quicksand',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 
-        body {
-            font-family: 'Quicksand', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            transition: background 0.3s, color 0.3s;
-        }
-
-        /* ── Login Gate ── */
+        /* ═══ LOGIN GATE ═══ */
         #loginGate {
-            position: fixed; inset: 0;
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 9999;
+            position:fixed; inset:0; z-index:9999;
+            display:flex; align-items:center; justify-content:center; overflow:hidden;
+        }
+        #loginBg {
+            position:absolute; inset:0;
+            background:url('https://h.uguu.se/WUZwLGYM.jpg') center/cover no-repeat;
+            filter:blur(4px) brightness(0.35);
+            transform:scale(1.08);
+            transition:filter 0.4s;
+        }
+        #loginOverlay {
+            position:absolute; inset:0;
+            background:linear-gradient(135deg,rgba(10,15,30,0.6) 0%,rgba(59,130,246,0.1) 50%,rgba(139,92,246,0.12) 100%);
         }
         .login-box {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 40px;
-            width: 340px;
-            text-align: center;
-            backdrop-filter: blur(20px);
+            position:relative; z-index:1;
+            background:rgba(8,12,24,0.72);
+            border:1px solid rgba(255,255,255,0.1);
+            border-radius:24px; padding:44px 40px; width:360px; text-align:center;
+            backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px);
+            box-shadow:0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.08);
+            animation:loginIn 0.55s cubic-bezier(0.34,1.56,0.64,1) both;
         }
-        .login-box h2 { color: white; font-size: 1.5rem; margin-bottom: 6px; }
-        .login-box p  { color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-bottom: 28px; }
-        .login-box input {
-            width: 100%; padding: 12px 16px;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 10px; color: white;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.95rem; letter-spacing: 2px;
-            margin-bottom: 14px; outline: none;
-            transition: border 0.2s;
+        @keyframes loginIn { from{opacity:0;transform:translateY(28px) scale(0.94)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+        .login-avatar {
+            width:68px; height:68px;
+            background:linear-gradient(135deg,#3b82f6,#8b5cf6);
+            border-radius:50%; display:flex; align-items:center; justify-content:center;
+            font-size:1.7rem; margin:0 auto 18px;
+            box-shadow:0 8px 28px rgba(59,130,246,0.45), inset 0 1px 0 rgba(255,255,255,0.2);
         }
-        .login-box input:focus { border-color: #3b82f6; }
-        .login-box input::placeholder { letter-spacing: 0; color: rgba(255,255,255,0.3); }
+        .login-box h2 { color:white; font-size:1.35rem; font-weight:700; margin-bottom:5px; }
+        .login-box p  { color:rgba(255,255,255,0.35); font-size:0.8rem; margin-bottom:26px; }
+
+        .input-wrap { position:relative; margin-bottom:12px; }
+        .input-icon { position:absolute; left:13px; top:50%; transform:translateY(-50%); opacity:0.35; font-size:0.85rem; }
+        .login-input {
+            width:100%; padding:12px 16px 12px 36px;
+            background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09);
+            border-radius:12px; color:white; font-family:'JetBrains Mono',monospace;
+            font-size:0.88rem; letter-spacing:2px; outline:none; transition:all 0.25s;
+        }
+        .login-input:focus { border-color:rgba(59,130,246,0.5); background:rgba(59,130,246,0.07); box-shadow:0 0 0 3px rgba(59,130,246,0.12); }
+        .login-input::placeholder { letter-spacing:0; color:rgba(255,255,255,0.22); }
+
         .login-btn {
-            width: 100%; padding: 12px;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            color: white; border: none; border-radius: 10px;
-            font-family: 'Quicksand', sans-serif;
-            font-weight: 700; font-size: 1rem;
-            cursor: pointer; transition: opacity 0.2s, transform 0.2s;
+            width:100%; padding:13px; margin-top:6px;
+            background:linear-gradient(135deg,#3b82f6,#8b5cf6);
+            color:white; border:none; border-radius:12px;
+            font-family:'Quicksand',sans-serif; font-weight:700; font-size:0.92rem;
+            cursor:pointer; transition:all 0.2s; letter-spacing:0.3px;
+            box-shadow:0 8px 24px rgba(59,130,246,0.38);
         }
-        .login-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-        .login-err { color: #ef4444; font-size: 0.82rem; margin-top: 10px; min-height: 18px; }
+        .login-btn:hover { opacity:0.88; transform:translateY(-1px); }
+        .login-btn:active { transform:translateY(0); }
 
-        /* ── Nav ── */
+        .login-err { color:#f87171; font-size:0.78rem; margin-top:10px; min-height:16px; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
+
+        /* ═══ DASHBOARD ═══ */
+        #dashboard { display:none; }
+
         nav {
-            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-            background: var(--nav-bg);
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--border);
-            padding: 14px 28px;
-            display: flex; align-items: center; justify-content: space-between;
+            position:fixed; top:0; left:0; right:0; z-index:100; height:58px;
+            background:rgba(8,12,24,0.92); backdrop-filter:blur(20px);
+            border-bottom:1px solid var(--border);
+            display:flex; align-items:center; justify-content:space-between; padding:0 24px;
         }
-        .nav-left { display: flex; align-items: center; gap: 12px; }
-        .nav-logo { font-weight: 700; font-size: 1.1rem; color: var(--text); }
-        .nav-badge {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            color: white; padding: 3px 10px;
-            border-radius: 99px; font-size: 0.7rem; font-weight: 700;
-        }
-        .nav-right { display: flex; align-items: center; gap: 10px; }
-        .btn-icon {
-            background: var(--surface2); border: 1px solid var(--border);
-            color: var(--text); border-radius: 10px; padding: 8px 14px;
-            font-size: 0.82rem; font-weight: 600; cursor: pointer;
-            transition: all 0.2s; font-family: 'Quicksand', sans-serif;
-        }
-        .btn-icon:hover { background: var(--accent); color: white; border-color: var(--accent); }
+        .nav-left { display:flex; align-items:center; gap:10px; }
+        .nav-logo  { font-weight:700; font-size:0.95rem; color:white; }
+        .nav-badge { background:linear-gradient(135deg,#3b82f6,#8b5cf6); color:white; padding:3px 10px; border-radius:99px; font-size:0.66rem; font-weight:700; }
+        .live-pill { display:flex; align-items:center; gap:5px; font-size:0.72rem; color:var(--text3); background:rgba(34,197,94,0.1); padding:3px 10px; border-radius:99px; border:1px solid rgba(34,197,94,0.2); }
+        .live-dot  { width:6px; height:6px; background:#22c55e; border-radius:50%; animation:livePulse 1.5s ease-in-out infinite; box-shadow:0 0 5px #22c55e; }
+        @keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.6)} }
+        .nav-right { display:flex; gap:8px; }
+        .nav-btn { background:var(--surface2); border:1px solid var(--border2); color:var(--text3); border-radius:9px; padding:6px 13px; font-size:0.75rem; font-weight:600; cursor:pointer; transition:all 0.2s; font-family:'Quicksand',sans-serif; text-decoration:none; }
+        .nav-btn:hover { background:var(--accent); color:white; border-color:var(--accent); }
+        .nav-btn.red:hover { background:var(--red); border-color:var(--red); color:white; }
 
-        /* ── Main Layout ── */
-        main { padding: 100px 24px 40px; max-width: 1100px; margin: 0 auto; }
+        main { padding:74px 22px 48px; max-width:1080px; margin:0 auto; }
 
-        h2.section-title {
-            font-size: 1.4rem; font-weight: 700; color: var(--text);
-            margin-bottom: 16px;
-            display: flex; align-items: center; gap: 8px;
+        .section-label {
+            font-size:0.65rem; font-weight:700; color:var(--text2);
+            text-transform:uppercase; letter-spacing:1.8px;
+            margin:28px 0 12px; display:flex; align-items:center; gap:10px;
         }
-        h2.section-title span { font-size: 1.3rem; }
+        .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
 
-        /* ── Summary Cards ── */
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 14px; margin-bottom: 32px;
-        }
-        .summary-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px; padding: 20px 22px;
-            box-shadow: var(--card-shadow);
-            position: relative; overflow: hidden;
-            transition: transform 0.2s;
-        }
-        .summary-card:hover { transform: translateY(-2px); }
-        .summary-card::before {
-            content: '';
-            position: absolute; top: 0; left: 0;
-            width: 4px; height: 100%;
-            border-radius: 4px 0 0 4px;
-        }
-        .summary-card.blue::before   { background: linear-gradient(180deg,#3b82f6,#8b5cf6); }
-        .summary-card.green::before  { background: linear-gradient(180deg,#22c55e,#16a34a); }
-        .summary-card.yellow::before { background: linear-gradient(180deg,#f59e0b,#d97706); }
-        .summary-card.red::before    { background: linear-gradient(180deg,#ef4444,#dc2626); }
-        .summary-card.purple::before { background: linear-gradient(180deg,#a855f7,#7c3aed); }
+        /* Summary Cards */
+        .summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; }
 
-        .s-label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-        .s-value { font-size: 1.7rem; font-weight: 700; color: var(--text); font-family: 'JetBrains Mono', monospace; line-height: 1; }
-        .s-sub   { font-size: 0.75rem; color: var(--text2); margin-top: 4px; }
+        .s-card {
+            background:var(--surface); border:1px solid var(--border);
+            border-radius:15px; padding:18px 16px;
+            position:relative; overflow:hidden;
+            transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1), border-color 0.2s;
+        }
+        .s-card:hover { transform:translateY(-3px); border-color:var(--border2); }
+        .s-glow { position:absolute; top:-30px; right:-30px; width:90px; height:90px; border-radius:50%; opacity:0.07; pointer-events:none; }
+        .c-blue   .s-glow { background:#3b82f6; }
+        .c-green  .s-glow { background:#22c55e; }
+        .c-yellow .s-glow { background:#f59e0b; }
+        .c-red    .s-glow { background:#ef4444; }
+        .c-purple .s-glow { background:#a855f7; }
+        .c-pink   .s-glow { background:#ec4899; }
 
-        /* ── Tables ── */
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px; overflow: hidden;
-            box-shadow: var(--card-shadow);
-            margin-bottom: 24px;
-        }
-        .card-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .card-title { font-weight: 700; font-size: 0.95rem; color: var(--text); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px 20px; text-align: left; }
-        th { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); background: var(--surface2); }
-        td { font-size: 0.87rem; color: var(--text); border-bottom: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; }
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background: var(--surface2); }
+        .s-icon  { font-size:1.3rem; margin-bottom:10px; }
+        .s-label { font-size:0.65rem; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:0.7px; margin-bottom:4px; display:flex; align-items:center; gap:4px; }
+        .s-dot   { width:5px; height:5px; background:var(--green); border-radius:50%; animation:livePulse 1.5s infinite; }
+        .s-val   { font-size:1.5rem; font-weight:700; color:white; font-family:'JetBrains Mono',monospace; line-height:1; }
+        .s-sub   { font-size:0.68rem; color:var(--text2); margin-top:5px; }
 
-        .badge {
-            display: inline-block; padding: 2px 10px;
-            border-radius: 99px; font-size: 0.72rem; font-weight: 700;
-            font-family: 'Quicksand', sans-serif;
-        }
-        .badge-green  { background: rgba(34,197,94,0.12);  color: #16a34a; }
-        .badge-red    { background: rgba(239,68,68,0.12);   color: #dc2626; }
-        .badge-blue   { background: rgba(59,130,246,0.12);  color: #2563eb; }
-        .badge-yellow { background: rgba(245,158,11,0.12);  color: #d97706; }
+        /* Card */
+        .card { background:var(--surface); border:1px solid var(--border); border-radius:15px; overflow:hidden; margin-bottom:10px; }
+        .card-head { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+        .card-title { font-weight:700; font-size:0.85rem; color:white; }
+        .card-sub   { font-size:0.7rem; color:var(--text2); }
 
-        /* ── Rate Limiter Table ── */
-        .progress-bar {
-            height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; min-width: 80px;
-        }
-        .progress-fill { height: 100%; border-radius: 99px; transition: width 0.4s; }
+        table { width:100%; border-collapse:collapse; }
+        th, td { padding:11px 18px; text-align:left; }
+        th { font-size:0.65rem; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:0.8px; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.02); }
+        td { font-size:0.8rem; color:var(--text3); border-bottom:1px solid var(--border); }
+        td.mono { font-family:'JetBrains Mono',monospace; color:var(--text); font-size:0.75rem; }
+        tr:last-child td { border-bottom:none; }
+        tr:hover td { background:rgba(255,255,255,0.015); }
 
-        /* ── API Key Manager ── */
-        .key-row td:first-child { font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; }
-        .btn-sm {
-            padding: 4px 12px; border-radius: 8px; border: none;
-            font-size: 0.75rem; font-weight: 700; cursor: pointer;
-            font-family: 'Quicksand', sans-serif; transition: all 0.2s;
-        }
-        .btn-danger { background: rgba(239,68,68,0.1); color: #dc2626; }
-        .btn-danger:hover { background: #ef4444; color: white; }
-        .btn-primary { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; }
-        .btn-primary:hover { opacity: 0.85; }
+        .badge { display:inline-block; padding:2px 9px; border-radius:99px; font-size:0.65rem; font-weight:700; }
+        .b-green  { background:rgba(34,197,94,0.12);  color:#4ade80; }
+        .b-red    { background:rgba(239,68,68,0.12);  color:#f87171; }
+        .b-blue   { background:rgba(59,130,246,0.12); color:#60a5fa; }
+        .b-yellow { background:rgba(245,158,11,0.12); color:#fbbf24; }
+        .b-purple { background:rgba(168,85,247,0.12); color:#c084fc; }
 
-        .add-key-form {
-            display: flex; gap: 10px; padding: 16px 20px;
-            border-top: 1px solid var(--border);
-            flex-wrap: wrap;
-        }
+        .prog { height:4px; background:rgba(255,255,255,0.07); border-radius:99px; overflow:hidden; min-width:60px; }
+        .prog-fill { height:100%; border-radius:99px; }
+        .pf-red    { background:linear-gradient(90deg,#ef4444,#dc2626); width:33%; }
+        .pf-yellow { background:linear-gradient(90deg,#f59e0b,#d97706); width:60%; }
+        .pf-green  { background:linear-gradient(90deg,#22c55e,#16a34a); width:100%; }
+
+        .add-key-form { display:flex; gap:8px; padding:14px 18px; border-top:1px solid var(--border); flex-wrap:wrap; }
         .add-key-form input {
-            flex: 1; min-width: 120px;
-            padding: 8px 12px; border-radius: 8px;
-            border: 1px solid var(--border); background: var(--surface2);
-            color: var(--text); font-family: 'Quicksand', sans-serif; font-size: 0.87rem;
-            outline: none;
+            flex:1; min-width:110px; padding:8px 12px; border-radius:9px;
+            border:1px solid var(--border2); background:rgba(255,255,255,0.05);
+            color:var(--text); font-family:'Quicksand',sans-serif; font-size:0.8rem;
+            outline:none; transition:border 0.2s;
         }
-        .add-key-form input:focus { border-color: var(--accent); }
+        .add-key-form input:focus { border-color:var(--accent); }
+        .add-key-form input::placeholder { color:var(--text2); }
 
-        /* ── Log ── */
-        .log-entry {
-            padding: 10px 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex; align-items: flex-start; gap: 12px;
-            font-size: 0.82rem;
-        }
-        .log-entry:last-child { border-bottom: none; }
-        .log-time { color: var(--text2); font-family: 'JetBrains Mono', monospace; white-space: nowrap; font-size: 0.75rem; padding-top: 1px; }
-        .log-method { font-weight: 700; font-family: 'JetBrains Mono', monospace; min-width: 40px; }
-        .log-path  { color: var(--text); flex: 1; word-break: break-all; }
-        .log-status { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+        .btn-sm { padding:6px 14px; border-radius:9px; border:none; font-size:0.72rem; font-weight:700; cursor:pointer; font-family:'Quicksand',sans-serif; transition:all 0.2s; white-space:nowrap; }
+        .btn-danger  { background:rgba(239,68,68,0.1);  color:#f87171; }
+        .btn-danger:hover  { background:#ef4444; color:white; }
+        .btn-primary { background:linear-gradient(135deg,#3b82f6,#8b5cf6); color:white; }
+        .btn-primary:hover { opacity:0.85; }
 
-        /* ── Refresh btn ── */
-        .refresh-dot {
-            width: 8px; height: 8px; border-radius: 50%;
-            background: var(--green); display: inline-block; margin-right: 6px;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        .log-list { max-height:280px; overflow-y:auto; }
+        .log-list::-webkit-scrollbar { width:3px; }
+        .log-list::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
 
-        /* ── Toast ── */
+        .log-item { padding:9px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; font-size:0.75rem; }
+        .log-item:last-child { border-bottom:none; }
+        .log-item:hover { background:rgba(255,255,255,0.015); }
+        .log-time   { color:var(--text2); font-family:'JetBrains Mono',monospace; font-size:0.68rem; white-space:nowrap; }
+        .log-method { font-weight:700; font-family:'JetBrains Mono',monospace; min-width:34px; color:#60a5fa; }
+        .log-path   { color:var(--text3); flex:1; word-break:break-all; font-family:'JetBrains Mono',monospace; }
+        .log-status { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:0.72rem; }
+        .log-empty  { padding:22px; color:var(--text2); font-size:0.8rem; text-align:center; }
+
         #toast {
-            position: fixed; bottom: 28px; right: 28px;
-            background: #1e293b; color: white;
-            padding: 12px 20px; border-radius: 12px;
-            font-size: 0.87rem; font-weight: 600;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            transform: translateY(80px); opacity: 0;
-            transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
-            z-index: 999;
+            position:fixed; bottom:22px; right:22px;
+            background:rgba(15,23,42,0.95); color:white;
+            padding:10px 16px; border-radius:11px; font-size:0.8rem; font-weight:600;
+            border:1px solid rgba(255,255,255,0.08);
+            box-shadow:0 8px 32px rgba(0,0,0,0.5);
+            transform:translateY(80px); opacity:0;
+            transition:all 0.35s cubic-bezier(.34,1.56,.64,1);
+            z-index:9999; pointer-events:none;
         }
-        #toast.show { transform: translateY(0); opacity: 1; }
+        #toast.show { transform:translateY(0); opacity:1; }
 
-        @media (max-width: 600px) {
-            main { padding: 85px 14px 30px; }
-            .summary-grid { grid-template-columns: 1fr 1fr; }
-            .s-value { font-size: 1.3rem; }
-            th, td { padding: 10px 12px; }
-            .add-key-form { flex-direction: column; }
+        @media(max-width:600px) {
+            main { padding:68px 12px 36px; }
+            .summary-grid { grid-template-columns:1fr 1fr; }
+            .login-box { width:calc(100vw - 32px); padding:32px 24px; }
+            th,td { padding:9px 12px; }
         }
     </style>
 </head>
 <body>
 
-<!-- Login Gate -->
+<!-- LOGIN -->
 <div id="loginGate">
+    <div id="loginBg"></div>
+    <div id="loginOverlay"></div>
     <div class="login-box">
-        <h2>🔐 Admin Panel</h2>
-        <p>Masukkan password admin untuk melanjutkan</p>
-        <input type="password" id="pwInput" placeholder="Password..." autocomplete="off" />
-        <button class="login-btn" onclick="doLogin()">Masuk</button>
+        <div class="login-avatar">⚙️</div>
+        <h2>Admin Panel</h2>
+        <p>Masukkan password untuk melanjutkan</p>
+        <div class="input-wrap">
+            <span class="input-icon">🔑</span>
+            <input class="login-input" type="password" id="pwInput" placeholder="Password..."/>
+        </div>
+        <button class="login-btn" onclick="doLogin()">Masuk ke Dashboard</button>
         <div class="login-err" id="loginErr"></div>
     </div>
 </div>
 
-<!-- Nav -->
-<nav>
-    <div class="nav-left">
-        <span class="nav-logo">⚙️ Himmel Admin</span>
-        <span class="nav-badge">Dashboard</span>
-    </div>
-    <div class="nav-right">
-        <span style="font-size:0.75rem;color:var(--text2);"><span class="refresh-dot"></span>Live</span>
-        <button class="btn-icon" onclick="toggleTheme()">🌙 Dark</button>
-        <button class="btn-icon" onclick="window.location='/'">← Kembali</button>
-        <button class="btn-icon" onclick="doLogout()" style="color:#ef4444">Logout</button>
-    </div>
-</nav>
+<!-- DASHBOARD -->
+<div id="dashboard">
+    <nav>
+        <div class="nav-left">
+            <span class="nav-logo">⚙️ Himmel</span>
+            <span class="nav-badge">Admin</span>
+            <div class="live-pill"><span class="live-dot"></span>Live</div>
+        </div>
+        <div class="nav-right">
+            <a href="/" class="nav-btn">← Home</a>
+            <button class="nav-btn red" onclick="doLogout()">Logout</button>
+        </div>
+    </nav>
 
-<main id="mainContent" style="display:none">
+    <main>
+        <div class="section-label">📊 Overview</div>
+        <div class="summary-grid">
+            <div class="s-card c-blue">
+                <div class="s-glow"></div>
+                <div class="s-icon">⏱️</div>
+                <div class="s-label">Uptime <span class="s-dot"></span></div>
+                <div class="s-val" id="sUptime">—</div>
+                <div class="s-sub">server berjalan</div>
+            </div>
+            <div class="s-card c-green">
+                <div class="s-glow"></div>
+                <div class="s-icon">📥</div>
+                <div class="s-label">Requests <span class="s-dot"></span></div>
+                <div class="s-val" id="sTotalReq">—</div>
+                <div class="s-sub">session ini</div>
+            </div>
+            <div class="s-card c-yellow">
+                <div class="s-glow"></div>
+                <div class="s-icon">💾</div>
+                <div class="s-label">RAM <span class="s-dot"></span></div>
+                <div class="s-val" id="sMemory">—</div>
+                <div class="s-sub">heap used</div>
+            </div>
+            <div class="s-card c-red">
+                <div class="s-glow"></div>
+                <div class="s-icon">⚠️</div>
+                <div class="s-label">Errors <span class="s-dot"></span></div>
+                <div class="s-val" id="sErrors">—</div>
+                <div class="s-sub">5xx responses</div>
+            </div>
+            <div class="s-card c-purple">
+                <div class="s-glow"></div>
+                <div class="s-icon">📡</div>
+                <div class="s-label">Routes</div>
+                <div class="s-val" id="sRoutes">—</div>
+                <div class="s-sub">endpoint aktif</div>
+            </div>
+            <div class="s-card c-pink">
+                <div class="s-glow"></div>
+                <div class="s-icon">👥</div>
+                <div class="s-label">Monthly Users <span class="s-dot"></span></div>
+                <div class="s-val" id="sUsers">—</div>
+                <div class="s-sub">bulan ini</div>
+            </div>
+        </div>
 
-    <!-- Summary Cards -->
-    <h2 class="section-title"><span>📊</span> Overview</h2>
-    <div class="summary-grid">
-        <div class="summary-card blue">
-            <div class="s-label">Server Uptime</div>
-            <div class="s-value" id="sUptime">—</div>
-            <div class="s-sub">since last restart</div>
+        <div class="section-label">🚦 Rate Limiter</div>
+        <div class="card">
+            <div class="card-head">
+                <span class="card-title">Limit per Kategori</span>
+                <span class="card-sub">per IP / menit</span>
+            </div>
+            <table>
+                <thead><tr><th>Endpoint</th><th>Max/mnt</th><th>Level</th><th>Status</th></tr></thead>
+                <tbody>
+                    <tr><td class="mono">/ai/*</td><td class="mono">10</td><td><div class="prog"><div class="prog-fill pf-red"></div></div></td><td><span class="badge b-red">Ketat</span></td></tr>
+                    <tr><td class="mono">/downloader/*</td><td class="mono">10</td><td><div class="prog"><div class="prog-fill pf-red"></div></div></td><td><span class="badge b-red">Ketat</span></td></tr>
+                    <tr><td class="mono">/tools/*</td><td class="mono">30</td><td><div class="prog"><div class="prog-fill pf-yellow"></div></div></td><td><span class="badge b-yellow">Normal</span></td></tr>
+                    <tr><td class="mono">/random/*</td><td class="mono">30</td><td><div class="prog"><div class="prog-fill pf-yellow"></div></div></td><td><span class="badge b-yellow">Normal</span></td></tr>
+                    <tr><td class="mono">/search/*</td><td class="mono">60</td><td><div class="prog"><div class="prog-fill pf-green"></div></div></td><td><span class="badge b-green">Ringan</span></td></tr>
+                    <tr><td class="mono">/info/*</td><td class="mono">60</td><td><div class="prog"><div class="prog-fill pf-green"></div></div></td><td><span class="badge b-green">Ringan</span></td></tr>
+                </tbody>
+            </table>
         </div>
-        <div class="summary-card green">
-            <div class="s-label">Total Requests</div>
-            <div class="s-value" id="sTotalReq">—</div>
-            <div class="s-sub">all time this session</div>
-        </div>
-        <div class="summary-card yellow">
-            <div class="s-label">Errors</div>
-            <div class="s-value" id="sErrors">—</div>
-            <div class="s-sub">5xx responses</div>
-        </div>
-        <div class="summary-card red">
-            <div class="s-label">Memory</div>
-            <div class="s-value" id="sMemory">—</div>
-            <div class="s-sub">heap used</div>
-        </div>
-        <div class="summary-card purple">
-            <div class="s-label">Active Routes</div>
-            <div class="s-value" id="sRoutes">—</div>
-            <div class="s-sub">loaded endpoints</div>
-        </div>
-    </div>
 
-    <!-- Rate Limiter Status -->
-    <h2 class="section-title"><span>🚦</span> Rate Limiter</h2>
-    <div class="card" style="margin-bottom:32px;">
-        <div class="card-header">
-            <span class="card-title">Limit per kategori endpoint</span>
+        <div class="section-label">🔑 API Key Manager</div>
+        <div class="card">
+            <div class="card-head">
+                <span class="card-title">Kelola API Keys</span>
+                <span class="card-sub">dari settings.json</span>
+            </div>
+            <table>
+                <thead><tr><th>Key</th><th>Label</th><th>Akses</th><th>Status</th><th>Aksi</th></tr></thead>
+                <tbody id="keyTableBody"><tr><td colspan="5" class="log-empty">Loading...</td></tr></tbody>
+            </table>
+            <div class="add-key-form">
+                <input type="text" id="newKey"    placeholder="API Key baru"/>
+                <input type="text" id="newLabel"  placeholder="Label"/>
+                <input type="text" id="newAccess" placeholder="Akses (ai/all)" value="ai"/>
+                <button class="btn-sm btn-primary" onclick="addKey()">+ Tambah</button>
+            </div>
         </div>
-        <table>
-            <thead>
-                <tr><th>Endpoint</th><th>Max/menit</th><th>Level</th><th>Status</th></tr>
-            </thead>
-            <tbody>
-                <tr><td>/ai/*</td><td>10</td><td><div class="progress-bar"><div class="progress-fill" style="width:33%;background:#ef4444"></div></div></td><td><span class="badge badge-red">Ketat</span></td></tr>
-                <tr><td>/downloader/*</td><td>10</td><td><div class="progress-bar"><div class="progress-fill" style="width:33%;background:#ef4444"></div></div></td><td><span class="badge badge-red">Ketat</span></td></tr>
-                <tr><td>/tools/*</td><td>30</td><td><div class="progress-bar"><div class="progress-fill" style="width:60%;background:#f59e0b"></div></div></td><td><span class="badge badge-yellow">Normal</span></td></tr>
-                <tr><td>/random/*</td><td>30</td><td><div class="progress-bar"><div class="progress-fill" style="width:60%;background:#f59e0b"></div></div></td><td><span class="badge badge-yellow">Normal</span></td></tr>
-                <tr><td>/search/*</td><td>60</td><td><div class="progress-bar"><div class="progress-fill" style="width:100%;background:#22c55e"></div></div></td><td><span class="badge badge-green">Ringan</span></td></tr>
-                <tr><td>/info/*</td><td>60</td><td><div class="progress-bar"><div class="progress-fill" style="width:100%;background:#22c55e"></div></div></td><td><span class="badge badge-green">Ringan</span></td></tr>
-            </tbody>
-        </table>
-    </div>
 
-    <!-- API Key Manager -->
-    <h2 class="section-title"><span>🔑</span> API Key Manager</h2>
-    <div class="card" style="margin-bottom:32px;">
-        <div class="card-header">
-            <span class="card-title">Kelola API Keys</span>
-            <span style="font-size:0.78rem;color:var(--text2)">Perubahan langsung tersimpan ke settings.json</span>
+        <div class="section-label">📡 Semua Endpoint</div>
+        <div class="card">
+            <div class="card-head">
+                <span class="card-title">Daftar API</span>
+                <span class="card-sub" id="epCount">dari settings.json</span>
+            </div>
+            <table>
+                <thead><tr><th>#</th><th>Nama</th><th>Kategori</th><th>Path</th></tr></thead>
+                <tbody id="epBody"><tr><td colspan="4" class="log-empty">Loading...</td></tr></tbody>
+            </table>
         </div>
-        <table>
-            <thead>
-                <tr><th>Key</th><th>Label</th><th>Akses</th><th>Aksi</th></tr>
-            </thead>
-            <tbody id="keyTableBody">
-                <tr><td colspan="4" style="color:var(--text2);text-align:center;padding:20px">Loading...</td></tr>
-            </tbody>
-        </table>
-        <div class="add-key-form">
-            <input type="text" id="newKey" placeholder="API Key baru (cth: ABC123)" />
-            <input type="text" id="newLabel" placeholder="Label (cth: User Premium)" />
-            <input type="text" id="newAccess" placeholder="Akses (cth: ai atau all)" value="ai" />
-            <button class="btn-sm btn-primary" onclick="addKey()">+ Tambah Key</button>
-        </div>
-    </div>
 
-    <!-- Endpoint List -->
-    <h2 class="section-title"><span>📡</span> Semua Endpoint</h2>
-    <div class="card" style="margin-bottom:32px;">
-        <div class="card-header">
-            <span class="card-title">Daftar API dari settings.json</span>
+        <div class="section-label">📋 Activity Log</div>
+        <div class="card">
+            <div class="card-head">
+                <span class="card-title">Request Log</span>
+                <button class="btn-sm btn-danger" onclick="clearLog()">🗑 Clear</button>
+            </div>
+            <div class="log-list" id="logList">
+                <div class="log-empty">Belum ada log.</div>
+            </div>
         </div>
-        <table>
-            <thead>
-                <tr><th>#</th><th>Nama</th><th>Deskripsi</th><th>Kategori</th><th>Path</th></tr>
-            </thead>
-            <tbody id="endpointTableBody">
-                <tr><td colspan="5" style="color:var(--text2);text-align:center;padding:20px">Loading...</td></tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Recent Activity Log -->
-    <h2 class="section-title"><span>📋</span> Activity Log</h2>
-    <div class="card">
-        <div class="card-header">
-            <span class="card-title">Request terakhir (session ini)</span>
-            <button class="btn-sm btn-primary" onclick="clearLog()">🗑 Clear</button>
-        </div>
-        <div id="logContainer" style="max-height:320px;overflow-y:auto;">
-            <div style="padding:20px;color:var(--text2);text-align:center;font-size:0.85rem">Belum ada log. Coba hit beberapa endpoint dulu.</div>
-        </div>
-    </div>
-
-</main>
+    </main>
+</div>
 
 <div id="toast"></div>
 
 <script>
-// ── Config ─────────────────────────────────────────────────────────────
-const ADMIN_KEY = 'himmel_admin_auth';
-const ADMIN_PASS = 'admin123'; // Ganti di sini
+const ADMIN_KEY  = 'himmel_admin_auth';
+const ADMIN_PASS = 'admin123';
 
-// ── Login ───────────────────────────────────────────────────────────────
+// ── Login ──
 function doLogin() {
     const pw = document.getElementById('pwInput').value;
     if (pw === ADMIN_PASS) {
         sessionStorage.setItem(ADMIN_KEY, '1');
         document.getElementById('loginGate').style.display = 'none';
-        document.getElementById('mainContent').style.display = '';
+        document.getElementById('dashboard').style.display = '';
         initDashboard();
     } else {
-        document.getElementById('loginErr').textContent = 'Password salah! Coba lagi.';
+        const err = document.getElementById('loginErr');
+        err.textContent = '❌ Password salah!';
+        err.style.animation = 'none';
+        requestAnimationFrame(() => { err.style.animation = 'shake 0.3s ease'; });
         document.getElementById('pwInput').value = '';
-        setTimeout(() => document.getElementById('loginErr').textContent = '', 2500);
+        setTimeout(() => err.textContent = '', 3000);
     }
 }
+document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
-document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+function doLogout() { sessionStorage.removeItem(ADMIN_KEY); location.reload(); }
 
-function doLogout() {
-    sessionStorage.removeItem(ADMIN_KEY);
-    location.reload();
-}
-
-// Check session
 if (sessionStorage.getItem(ADMIN_KEY) === '1') {
     document.getElementById('loginGate').style.display = 'none';
-    document.getElementById('mainContent').style.display = '';
+    document.getElementById('dashboard').style.display = '';
 }
 
-// ── Theme ───────────────────────────────────────────────────────────────
-let isDark = localStorage.getItem('himmel_theme') === 'dark';
-function applyTheme() {
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    document.querySelector('[onclick="toggleTheme()"]').textContent = isDark ? '☀️ Light' : '🌙 Dark';
-}
-function toggleTheme() {
-    isDark = !isDark;
-    localStorage.setItem('himmel_theme', isDark ? 'dark' : 'light');
-    applyTheme();
-}
-applyTheme();
-
-// ── Toast ───────────────────────────────────────────────────────────────
+// ── Toast ──
 function showToast(msg) {
     const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2500);
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ── Fetch Health ────────────────────────────────────────────────────────
+// ── Live Uptime Ticker ──
+let uptimeSec = 0, tickerOn = false;
+function fmt(s) {
+    const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60;
+    if(h>0) return `${h}h ${String(m).padStart(2,'0')}m ${String(ss).padStart(2,'0')}s`;
+    if(m>0) return `${m}m ${String(ss).padStart(2,'0')}s`;
+    return `${ss}s`;
+}
+function startTicker() {
+    if(tickerOn) return; tickerOn = true;
+    setInterval(() => {
+        uptimeSec++;
+        const el = document.getElementById('sUptime');
+        if(el) el.textContent = fmt(uptimeSec);
+    }, 1000);
+}
+
+// ── Fetch Health ──
 async function fetchHealth() {
     try {
-        const r = await fetch('/health');
-        const d = await r.json();
-        document.getElementById('sUptime').textContent   = d.uptime || '—';
-        document.getElementById('sTotalReq').textContent = (d.requests || 0).toLocaleString();
-        document.getElementById('sErrors').textContent   = (d.errors || 0).toLocaleString();
-        document.getElementById('sMemory').textContent   = d.memory || '—';
-    } catch { }
+        const d = await fetch('/health').then(r => r.json());
+        if(d.uptime) {
+            const match = d.uptime.match(/(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s)?/);
+            uptimeSec = (parseInt(match?.[1]||0)*3600)+(parseInt(match?.[2]||0)*60)+parseInt(match?.[3]||0);
+            document.getElementById('sUptime').textContent = fmt(uptimeSec);
+            startTicker();
+        }
+        document.getElementById('sTotalReq').textContent = (d.requests||0).toLocaleString();
+        document.getElementById('sErrors').textContent   = (d.errors||0).toLocaleString();
+        document.getElementById('sMemory').textContent   = d.memory||'—';
+    } catch {}
 }
 
-// ── Fetch Settings ───────────────────────────────────────────────────────
+// ── Monthly Users ──
+function fetchUsers() {
+    const now = new Date();
+    const key = `himmel_visitors_${now.getFullYear()}_${now.getMonth()+1}`;
+    document.getElementById('sUsers').textContent = parseInt(localStorage.getItem(key)||'0').toLocaleString('id-ID');
+}
+
+// ── Settings ──
 async function fetchSettings() {
     try {
-        const r = await fetch('/src/settings.json');
-        const s = await r.json();
-
-        // Routes count
-        const total = s.categories.reduce((a, c) => a + c.items.length, 0);
+        const s = await fetch('/src/settings.json').then(r => r.json());
+        const total = s.categories.reduce((a,c) => a+c.items.length, 0);
         document.getElementById('sRoutes').textContent = total;
+        document.getElementById('epCount').textContent = `${total} endpoint`;
 
-        // API Keys table
         const keys = s.apiSettings?.apiKeys?.keys || [];
-        const tbody = document.getElementById('keyTableBody');
-        if (keys.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text2);text-align:center;padding:20px">Belum ada API key</td></tr>';
-        } else {
-            tbody.innerHTML = keys.map((k, i) => `
-                <tr class="key-row">
-                    <td>${k.key}</td>
-                    <td>${k.label || '-'}</td>
-                    <td>${(k.access || []).map(a => `<span class="badge badge-blue">${a}</span>`).join(' ')}</td>
-                    <td><button class="btn-sm btn-danger" onclick="deleteKey(${i})">Hapus</button></td>
-                </tr>
-            `).join('');
-        }
+        document.getElementById('keyTableBody').innerHTML = keys.length === 0
+            ? '<tr><td colspan="5" class="log-empty">Belum ada key</td></tr>'
+            : keys.map(k => `<tr>
+                <td class="mono">${k.key}</td>
+                <td>${k.label||'-'}</td>
+                <td>${(k.access||[]).map(a=>`<span class="badge b-blue">${a}</span>`).join(' ')}</td>
+                <td><span class="badge b-green">Active</span></td>
+                <td><button class="btn-sm btn-danger" onclick="showToast('Edit settings.json di server untuk hapus key')">Hapus</button></td>
+            </tr>`).join('');
 
-        // Endpoint list
-        let idx = 1;
-        const rows = s.categories.flatMap(cat =>
-            cat.items.map(item => `
-                <tr>
-                    <td>${idx++}</td>
-                    <td>${item.name}</td>
-                    <td style="color:var(--text2);font-family:'Quicksand',sans-serif">${item.desc}</td>
-                    <td><span class="badge badge-blue">${cat.name.split(' ')[0]}</span></td>
-                    <td style="color:#3b82f6">${item.path}</td>
-                </tr>
-            `)
-        );
-        document.getElementById('endpointTableBody').innerHTML = rows.join('');
-
-        return s;
-    } catch(e) {
-        showToast('Gagal fetch settings: ' + e.message);
-    }
-}
-
-// ── API Key actions ─────────────────────────────────────────────────────
-// Note: karena settings.json readonly dari browser, kita hanya kelola di localStorage
-// sebagai overlay. Untuk produksi, ini perlu endpoint POST /admin/keys di backend.
-const LOCAL_KEYS_KEY = 'himmel_admin_extra_keys';
-
-function getExtraKeys() {
-    try { return JSON.parse(localStorage.getItem(LOCAL_KEYS_KEY) || '[]'); } catch { return []; }
+        let i = 1;
+        document.getElementById('epBody').innerHTML = s.categories.flatMap(cat =>
+            cat.items.map(item => `<tr>
+                <td class="mono" style="color:var(--text2)">${i++}</td>
+                <td>${item.name}</td>
+                <td><span class="badge b-purple">${cat.name.split(' ')[0]}</span></td>
+                <td class="mono" style="color:#60a5fa;font-size:0.72rem">${item.path}</td>
+            </tr>`)
+        ).join('');
+    } catch(e) { showToast('Gagal fetch settings'); }
 }
 
 function addKey() {
-    const key    = document.getElementById('newKey').value.trim();
-    const label  = document.getElementById('newLabel').value.trim() || 'Custom Key';
-    const access = document.getElementById('newAccess').value.trim().split(',').map(s => s.trim());
-
+    const key = document.getElementById('newKey').value.trim();
     if (!key) { showToast('⚠️ Key tidak boleh kosong!'); return; }
-
-    const extras = getExtraKeys();
-    extras.push({ key, label, access });
-    localStorage.setItem(LOCAL_KEYS_KEY, JSON.stringify(extras));
-
     document.getElementById('newKey').value = '';
     document.getElementById('newLabel').value = '';
-    showToast(`✅ Key "${key}" ditambahkan!`);
-    fetchSettings();
+    showToast(`✅ Tambahkan "${key}" manual ke settings.json`);
 }
 
-function deleteKey(idx) {
-    if (!confirm('Hapus key ini?')) return;
-    // Untuk demo: hapus dari extras kalau ada
-    showToast('ℹ️ Untuk hapus key dari settings.json, edit file langsung di server.');
-}
-
-// ── Log System ───────────────────────────────────────────────────────────
-const activityLog = JSON.parse(sessionStorage.getItem('himmel_admin_log') || '[]');
-
-function saveLog() {
-    sessionStorage.setItem('himmel_admin_log', JSON.stringify(activityLog.slice(-100)));
-}
-
+// ── Log ──
+const actLog = JSON.parse(sessionStorage.getItem('himmel_log')||'[]');
+function saveLog() { sessionStorage.setItem('himmel_log', JSON.stringify(actLog.slice(-150))); }
 function renderLog() {
-    const c = document.getElementById('logContainer');
-    if (activityLog.length === 0) {
-        c.innerHTML = '<div style="padding:20px;color:var(--text2);text-align:center;font-size:0.85rem">Belum ada log.</div>';
-        return;
-    }
-    c.innerHTML = [...activityLog].reverse().map(l => {
-        const sClass = l.status >= 500 ? '#ef4444' : l.status >= 400 ? '#f59e0b' : '#22c55e';
-        return `
-            <div class="log-entry">
-                <span class="log-time">${l.time}</span>
-                <span class="log-method" style="color:#3b82f6">${l.method}</span>
-                <span class="log-path">${l.path}</span>
-                <span class="log-status" style="color:${sClass}">${l.status}</span>
-            </div>
-        `;
+    const c = document.getElementById('logList');
+    if(!actLog.length) { c.innerHTML='<div class="log-empty">Belum ada log.</div>'; return; }
+    c.innerHTML = [...actLog].reverse().map(l => {
+        const col = l.status>=500?'#f87171':l.status>=400?'#fbbf24':'#4ade80';
+        return `<div class="log-item">
+            <span class="log-time">${l.time}</span>
+            <span class="log-method">${l.method}</span>
+            <span class="log-path">${l.path}</span>
+            <span class="log-status" style="color:${col}">${l.status}</span>
+        </div>`;
     }).join('');
 }
+function clearLog() { actLog.length=0; saveLog(); renderLog(); showToast('🗑 Log dihapus'); }
 
-function clearLog() {
-    activityLog.length = 0;
-    saveLog();
-    renderLog();
-    showToast('🗑 Log dihapus');
-}
-
-// Intercept fetch untuk log semua request ke /api endpoints
-const origFetch = window.fetch.bind(window);
+const _fetch = window.fetch.bind(window);
 window.fetch = async function(url, opts) {
-    const res = await origFetch(url, opts);
-    const urlStr = typeof url === 'string' ? url : url.url;
-    if (!urlStr.includes('/health') && !urlStr.includes('settings.json') && !urlStr.includes('ipify') && !urlStr.includes('ipapi') && !urlStr.includes('my-ip')) {
-        activityLog.push({
-            time: new Date().toLocaleTimeString('id-ID'),
-            method: (opts?.method || 'GET').toUpperCase(),
-            path: urlStr.replace(window.location.origin, ''),
-            status: res.status
-        });
-        saveLog();
-        renderLog();
+    const res = await _fetch(url, opts);
+    const u = typeof url==='string'?url:url.url;
+    const skip=['/health','settings.json','ipify','ipapi','my-ip','uguu'];
+    if(!skip.some(s=>u.includes(s))) {
+        actLog.push({ time:new Date().toLocaleTimeString('id-ID'), method:(opts?.method||'GET').toUpperCase(), path:u.replace(location.origin,''), status:res.status });
+        saveLog(); renderLog();
     }
     return res;
 };
 
-// ── Init ─────────────────────────────────────────────────────────────────
 function initDashboard() {
-    fetchHealth();
-    fetchSettings();
-    renderLog();
-    // Auto-refresh health tiap 15 detik
-    setInterval(fetchHealth, 15000);
+    fetchHealth(); fetchSettings(); fetchUsers(); renderLog();
+    setInterval(fetchHealth, 10000);
+    setInterval(fetchUsers,  60000);
 }
 
-if (sessionStorage.getItem(ADMIN_KEY) === '1') {
-    initDashboard();
-}
+if(sessionStorage.getItem(ADMIN_KEY)==='1') initDashboard();
 </script>
 </body>
 </html>

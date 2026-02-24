@@ -43,9 +43,9 @@
       "name": "AI (人工知能)",
       "items": [
         {
-          "name": "Text To Image",
-          "desc": "Generate image with text",
-          "path": "/ai/txt2img?prompt=&apikey="
+          "name": "Face Swap",
+          "desc": "face swap 1 to 2",
+          "path": "/ai/faceswap?foto1=&foto2=&apikey="
         },
         {
           "name": "NanoBanana",

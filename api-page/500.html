@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>500 - Internal Error</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
+
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+body {
+height: 100vh;
+overflow: hidden;
+background-image: url('https://files.catbox.moe/yqb6wr.jpg');
+background-size: cover;
+background-position: center;
+background-repeat: no-repeat;
+font-family: 'Quicksand', sans-serif;
+position: relative;
+}
+
+/* Dark overlay biar teks kontras */
+body::before {
+content: '';
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: linear-gradient(
+135deg,
+rgba(0, 0, 0, 0.65) 0%,
+rgba(0, 0, 0, 0.45) 50%,
+rgba(0, 0, 0, 0.3) 100%
+);
+backdrop-filter: brightness(0.85);
+}
+
+/* Soft cloud effect - tetep ada tapi lebih subtle */
+.clouds {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: 1;
+overflow: hidden;
+opacity: 0.4;
+}
+
+.cloud {
+position: absolute;
+background: rgba(255, 255, 255, 0.15);
+border-radius: 1000px;
+filter: blur(40px);
+animation: floatCloud 20s infinite alternate ease-in-out;
+}
+
+.cloud-1 {
+width: 250px;
+height: 80px;
+top: 10%;
+right: -100px;
+}
+
+.cloud-2 {
+width: 300px;
+height: 100px;
+bottom: 20%;
+left: -150px;
+animation-duration: 25s;
+}
+
+.cloud-3 {
+width: 200px;
+height: 70px;
+top: 40%;
+left: 20%;
+animation-duration: 18s;
+}
+
+@keyframes floatCloud {
+0% { transform: translateX(0) translateY(0); }
+100% { transform: translateX(50px) translateY(20px); }
+}
+
+.container {
+position: relative;
+z-index: 3;
+height: 100vh;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+padding: 1rem;
+}
+
+/* Cloud icon - lebih kecil */
+.cloud-icon {
+font-size: 3.2rem;
+line-height: 1;
+margin-bottom: 0.5rem;
+filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5));
+animation: bounce 4s infinite ease-in-out;
+color: #ffffff;
+text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+@keyframes bounce {
+0%, 100% { transform: translateY(0); }
+50% { transform: translateY(-6px); }
+}
+
+/* 500 error number - lebih kecil */
+.error-number {
+font-size: 4.5rem;
+font-weight: 700;
+color: #ffffff;
+text-shadow: 
+3px 3px 0 rgba(0, 0, 0, 0.4),
+0 5px 15px rgba(0, 0, 0, 0.6);
+line-height: 1;
+letter-spacing: 1px;
+margin-bottom: 0.2rem;
+font-family: 'Quicksand', sans-serif;
+}
+
+/* Subtle effect - lebih kecil */
+.error-number span {
+font-size: 1.4rem;
+font-weight: 300;
+display: block;
+color: rgba(255, 255, 255, 0.95);
+text-shadow: 1.5px 1.5px 0 rgba(0, 0, 0, 0.4);
+letter-spacing: 5px;
+margin-top: -0.5rem;
+}
+
+/* Divider - lebih kecil */
+.divider {
+width: 90px;
+height: 2px;
+background: linear-gradient(90deg, 
+transparent 0%,
+rgba(255, 255, 255, 0.9) 20%,
+#ffffff 50%,
+rgba(255, 255, 255, 0.9) 80%,
+transparent 100%
+);
+margin: 1rem 0;
+border-radius: 2px;
+box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+}
+
+/* Error text - lebih kecil */
+.error-text {
+font-size: 0.9rem;
+color: #ffffff;
+text-transform: uppercase;
+letter-spacing: 6px;
+font-weight: 500;
+margin-bottom: 1.5rem;
+text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
+}
+
+.error-text i {
+font-style: normal;
+color: rgba(255, 255, 255, 0.95);
+font-size: 1.1rem;
+font-weight: 300;
+text-shadow: 1.5px 1.5px 3px rgba(0,0,0,0.5);
+}
+
+/* Description card - lebih kecil */
+.description {
+color: #ffffff;
+font-size: 0.8rem;
+letter-spacing: 0.5px;
+background: rgba(0, 0, 0, 0.6);
+border: 1px solid rgba(255, 255, 255, 0.3);
+padding: 0.8rem 1.8rem;
+border-radius: 50px;
+backdrop-filter: blur(4px);
+font-weight: 500;
+max-width: 280px;
+text-align: center;
+line-height: 1.5;
+box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+margin-bottom: 1rem;
+}
+
+/* Small note - lebih kecil */
+.note {
+color: rgba(255, 255, 255, 0.9);
+font-size: 0.65rem;
+letter-spacing: 2.5px;
+font-weight: 400;
+text-transform: uppercase;
+margin-top: 0.2rem;
+text-shadow: 1.5px 1.5px 2px rgba(0,0,0,0.5);
+background: rgba(0, 0, 0, 0.4);
+padding: 0.4rem 1.2rem;
+border-radius: 40px;
+backdrop-filter: blur(2px);
+border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Corner decorations - lebih kecil */
+.corner {
+position: absolute;
+width: 60px;
+height: 60px;
+z-index: 3;
+opacity: 0.7;
+}
+
+.corner-tl {
+top: 1rem;
+left: 1rem;
+border-left: 2.5px solid rgba(255, 255, 255, 0.7);
+border-top: 2.5px solid rgba(255, 255, 255, 0.7);
+border-radius: 15px 0 0 0;
+box-shadow: -2px -2px 5px rgba(0,0,0,0.3);
+}
+
+.corner-br {
+bottom: 1rem;
+right: 1rem;
+border-right: 2.5px solid rgba(255, 255, 255, 0.7);
+border-bottom: 2.5px solid rgba(255, 255, 255, 0.7);
+border-radius: 0 0 15px 0;
+box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+/* Responsive untuk layar sangat kecil */
+@media (max-width: 360px) {
+.cloud-icon {
+font-size: 2.8rem;
+}
+
+.error-number {
+font-size: 4rem;
+}
+
+.error-number span {
+font-size: 1.2rem;
+letter-spacing: 4px;
+}
+
+.error-text {
+font-size: 0.75rem;
+letter-spacing: 4px;
+}
+
+.error-text i {
+font-size: 0.9rem;
+}
+
+.description {
+font-size: 0.7rem;
+padding: 0.7rem 1.5rem;
+max-width: 240px;
+}
+
+.note {
+font-size: 0.6rem;
+padding: 0.35rem 1rem;
+}
+
+.divider {
+width: 70px;
+}
+}
+</style>
+</head>
+<body>
+<!-- Soft clouds -->
+<div class="clouds">
+<div class="cloud cloud-1"></div>
+<div class="cloud cloud-2"></div>
+<div class="cloud cloud-3"></div>
+</div>
+
+<div class="corner corner-tl"></div>
+<div class="corner corner-br"></div>
+
+<div class="container">
+<div class="cloud-icon">☁️</div>
+<div class="error-number">
+500
+<span>✦</span>
+</div>
+<div class="divider"></div>
+<div class="error-text">
+<i>⋆</i> INTERNAL SERVER ERROR <i>⋆</i>
+</div>
+<div class="description">
+there's a little turbulence up here<br>please bear with us
+</div>
+<div class="note">
+· we're clearing the clouds ·
+</div>
+</div>
+</body>
+</html>

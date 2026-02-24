@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>404 - Bad Request</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
+
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+body {
+height: 100vh;
+overflow: hidden;
+background-image: url('https://files.catbox.moe/d2hg80.jpg');
+background-size: cover;
+background-position: center;
+background-repeat: no-repeat;
+font-family: 'Quicksand', sans-serif;
+position: relative;
+}
+
+/* Darker overlay biar teks keliatan */
+body::before {
+content: '';
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: linear-gradient(
+135deg,
+rgba(0, 0, 0, 0.6) 0%,
+rgba(0, 0, 0, 0.4) 50%,
+rgba(0, 0, 0, 0.3) 100%
+);
+backdrop-filter: brightness(0.9);
+}
+
+/* Soft cloud effect - tetep ada tapi lebih subtle */
+.clouds {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: 1;
+overflow: hidden;
+opacity: 0.5;
+}
+
+.cloud {
+position: absolute;
+background: rgba(255, 255, 255, 0.2);
+border-radius: 1000px;
+filter: blur(40px);
+animation: floatCloud 20s infinite alternate ease-in-out;
+}
+
+.cloud-1 {
+width: 300px;
+height: 100px;
+top: 10%;
+right: -100px;
+}
+
+.cloud-2 {
+width: 400px;
+height: 120px;
+bottom: 20%;
+left: -150px;
+animation-duration: 25s;
+}
+
+.cloud-3 {
+width: 250px;
+height: 80px;
+top: 40%;
+left: 20%;
+animation-duration: 18s;
+}
+
+@keyframes floatCloud {
+0% { transform: translateX(0) translateY(0); }
+100% { transform: translateX(50px) translateY(20px); }
+}
+
+.container {
+position: relative;
+z-index: 3;
+height: 100vh;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+padding: 1.5rem;
+}
+
+/* Cloud icon - lebih gelap biar keliatan */
+.cloud-icon {
+font-size: 5rem;
+line-height: 1;
+margin-bottom: 1rem;
+filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.3));
+animation: bounce 4s infinite ease-in-out;
+color: #fff;
+text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+@keyframes bounce {
+0%, 100% { transform: translateY(0); }
+50% { transform: translateY(-8px); }
+}
+
+/* 400 error number - kontras */
+.error-number {
+font-size: 6rem;
+font-weight: 700;
+color: #ffffff;
+text-shadow: 
+3px 3px 0 rgba(0, 0, 0, 0.3),
+0 5px 20px rgba(0, 0, 0, 0.5);
+line-height: 1;
+letter-spacing: 2px;
+margin-bottom: 0.5rem;
+font-family: 'Quicksand', sans-serif;
+}
+
+/* Subtle effect */
+.error-number span {
+font-size: 2rem;
+font-weight: 300;
+display: block;
+color: rgba(255, 255, 255, 0.9);
+text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+letter-spacing: 6px;
+margin-top: -0.8rem;
+}
+
+/* Divider - lebih jelas */
+.divider {
+width: 120px;
+height: 3px;
+background: linear-gradient(90deg, 
+transparent 0%,
+rgba(255, 255, 255, 0.9) 20%,
+#ffffff 50%,
+rgba(255, 255, 255, 0.9) 80%,
+transparent 100%
+);
+margin: 1.5rem 0;
+border-radius: 3px;
+box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+/* Error text - kontras */
+.error-text {
+font-size: 1.2rem;
+color: #ffffff;
+text-transform: uppercase;
+letter-spacing: 8px;
+font-weight: 500;
+margin-bottom: 2rem;
+text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
+}
+
+.error-text i {
+font-style: normal;
+color: rgba(255, 255, 255, 0.9);
+font-size: 1.4rem;
+font-weight: 300;
+text-shadow: 2px 2px 3px rgba(0,0,0,0.5);
+}
+
+/* Description card - lebih solid */
+.description {
+color: #ffffff;
+font-size: 1rem;
+letter-spacing: 1px;
+background: rgba(0, 0, 0, 0.5);
+border: 1px solid rgba(255, 255, 255, 0.4);
+padding: 1.2rem 2.5rem;
+border-radius: 60px;
+backdrop-filter: blur(4px);
+font-weight: 500;
+max-width: 350px;
+text-align: center;
+line-height: 1.6;
+box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+margin-bottom: 1.5rem;
+}
+
+/* Small note - lebih jelas */
+.note {
+color: rgba(255, 255, 255, 0.8);
+font-size: 0.8rem;
+letter-spacing: 3px;
+font-weight: 400;
+text-transform: uppercase;
+margin-top: 0.5rem;
+text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+background: rgba(0, 0, 0, 0.3);
+padding: 0.5rem 1.5rem;
+border-radius: 40px;
+backdrop-filter: blur(2px);
+}
+
+/* Corner decorations - lebih jelas */
+.corner {
+position: absolute;
+width: 80px;
+height: 80px;
+z-index: 3;
+opacity: 0.7;
+}
+
+.corner-tl {
+top: 1.5rem;
+left: 1.5rem;
+border-left: 3px solid rgba(255, 255, 255, 0.7);
+border-top: 3px solid rgba(255, 255, 255, 0.7);
+border-radius: 15px 0 0 0;
+box-shadow: -2px -2px 5px rgba(0,0,0,0.2);
+}
+
+.corner-br {
+bottom: 1.5rem;
+right: 1.5rem;
+border-right: 3px solid rgba(255, 255, 255, 0.7);
+border-bottom: 3px solid rgba(255, 255, 255, 0.7);
+border-radius: 0 0 15px 0;
+box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+.cloud-icon {
+font-size: 4rem;
+}
+
+.error-number {
+font-size: 5rem;
+}
+
+.error-number span {
+font-size: 1.6rem;
+letter-spacing: 4px;
+}
+
+.error-text {
+font-size: 1rem;
+letter-spacing: 5px;
+}
+
+.description {
+font-size: 0.9rem;
+padding: 1rem 2rem;
+max-width: 300px;
+}
+
+.note {
+font-size: 0.7rem;
+padding: 0.4rem 1.2rem;
+}
+
+.divider {
+width: 100px;
+}
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+.cloud-icon {
+font-size: 3.5rem;
+margin-bottom: 0.5rem;
+}
+.error-number {
+font-size: 4rem;
+}
+.description {
+font-size: 0.8rem;
+padding: 0.8rem 1.8rem;
+}
+}
+</style>
+</head>
+<body>
+<!-- Soft clouds -->
+<div class="clouds">
+<div class="cloud cloud-1"></div>
+<div class="cloud cloud-2"></div>
+<div class="cloud cloud-3"></div>
+</div>
+
+<div class="corner corner-tl"></div>
+<div class="corner corner-br"></div>
+
+<div class="container">
+<div class="cloud-icon">☁️</div>
+<div class="error-number">
+404
+<span>✦</span>
+</div>
+<div class="divider"></div>
+<div class="error-text">
+<i>⋆</i> BAD REQUEST <i>⋆</i>
+</div>
+<div class="description">
+the path you're looking for<br>seems to be lost in the clouds
+</div>
+<div class="note">
+· let's try again ·
+</div>
+</div>
+</body>
+</html>

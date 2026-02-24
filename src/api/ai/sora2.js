@@ -1,189 +1,236 @@
-const axios  = require('axios');
-const crypto = require('crypto');
+const axios   = require('axios');
+const cheerio = require('cheerio');
+const crypto  = require('crypto');
 const { requireApiKey } = require('../../lib/apiKeyAuth');
 
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
-// ─── Temp Mail ────────────────────────────────────────────────────────────────
-class TempMail {
-    constructor() {
-        this.baseUrl   = 'https://akunlama.com';
-        this.recipient = crypto.randomBytes(8).toString('hex').substring(0, 10);
-        this.lastCount = 0;
-        this.headers   = {
-            'accept': 'application/json, text/plain, */*',
-            'accept-language': 'id-ID,id;q=0.9,en-US;q=0.8',
-            'referer': 'https://akunlama.com/',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
-        };
-    }
+// ─── Proxy List ───────────────────────────────────────────────────────────────
+const PROXIES = [
+    '31.59.20.176:6754:yfjfjudg:cebic9so4bvr',
+    '23.95.150.145:6114:yfjfjudg:cebic9so4bvr',
+    '198.23.239.134:6540:yfjfjudg:cebic9so4bvr',
+    '45.38.107.97:6014:yfjfjudg:cebic9so4bvr',
+    '107.172.163.27:6543:yfjfjudg:cebic9so4bvr',
+    '198.105.121.200:6462:yfjfjudg:cebic9so4bvr',
+    '64.137.96.74:6641:yfjfjudg:cebic9so4bvr',
+    '216.10.27.159:6837:yfjfjudg:cebic9so4bvr',
+    '142.111.67.146:5611:yfjfjudg:cebic9so4bvr',
+    '23.26.53.37:6003:yfjfjudg:cebic9so4bvr'
+];
 
-    get email() { return `${this.recipient}@akunlama.com`; }
-
-    async checkInbox() {
-        const r = await axios.get(`${this.baseUrl}/api/list`, {
-            params:  { recipient: this.recipient },
-            headers: { ...this.headers, referer: `https://akunlama.com/inbox/${this.recipient}/list` },
-            timeout: 12000
-        });
-        return r.data;
-    }
-
-    async getMsgHtml(msg) {
-        const r = await axios.get(`${this.baseUrl}/api/getHtml`, {
-            params:  { region: msg.storage.region, key: msg.storage.key },
-            headers: this.headers,
-            timeout: 12000
-        });
-        return r.data;
-    }
-
-    extractCode(html) {
-        // Format email nanobana: "9 1 4 8 7 3" (spasi antara tiap digit)
-        // Pattern: digit spasi digit spasi... x6
-        const spaced = html.match(/(\d)\s(\d)\s(\d)\s(\d)\s(\d)\s(\d)/);
-        if (spaced) return spaced.slice(1, 7).join('');
-
-        // Fallback 1: 6 digit berurutan langsung
-        const direct = html.match(/\b(\d{6})\b/);
-        if (direct) return direct[1];
-
-        // Fallback 2: strip semua HTML tag, lalu cari 6 digit
-        const stripped = html
-            .replace(/<[^>]+>/g, ' ')
-            .replace(/&nbsp;/gi, ' ')
-            .replace(/&#\d+;/g, ' ')
-            .replace(/&[a-z]+;/gi, ' ')
-            .replace(/\s+/g, ' ');
-
-        const fromStripped = stripped.match(/\b(\d{6})\b/);
-        if (fromStripped) return fromStripped[1];
-
-        // Fallback 3: ambil semua digit, gabung, ambil 6 pertama
-        const allDigits = stripped.replace(/\D/g, '');
-        if (allDigits.length >= 6) return allDigits.substring(0, 6);
-
-        return null;
-    }
-
-    async waitForCode(timeoutMs = 90000) {
-        return new Promise((resolve) => {
-            const iv = setInterval(async () => {
-                try {
-                    const inbox = await this.checkInbox();
-                    if (inbox.length > this.lastCount) {
-                        for (const msg of inbox.slice(this.lastCount)) {
-                            const html = await this.getMsgHtml(msg);
-                            const code = this.extractCode(html);
-                            if (code) { clearInterval(iv); return resolve(code); }
-                        }
-                        this.lastCount = inbox.length;
-                    }
-                } catch (_) {}
-            }, 4000);
-            setTimeout(() => { clearInterval(iv); resolve(null); }, timeoutMs);
-        });
-    }
+function getRandomProxy() {
+    const raw = PROXIES[Math.floor(Math.random() * PROXIES.length)];
+    const [host, port, user, pass] = raw.split(':');
+    return {
+        proxy: {
+            protocol: 'http',
+            host,
+            port: parseInt(port),
+            auth: { username: user, password: pass }
+        }
+    };
 }
 
-// ─── Core ─────────────────────────────────────────────────────────────────────
+// ─── Headers ──────────────────────────────────────────────────────────────────
 const baseHeaders = {
-    'User-Agent': 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36',
-    'sec-ch-ua': '"Chromium";v="131", "Not_A Brand";v="24"',
-    'sec-ch-ua-mobile': '?1',
-    'sec-ch-ua-platform': '"Android"',
-    'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8',
-    'origin':  'https://www.nanobana.net',
-    'referer': 'https://www.nanobana.net/m/sora2'
+    'User-Agent':        'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36',
+    'sec-ch-ua':         '"Chromium";v="139", "Not;A=Brand";v="99"',
+    'sec-ch-ua-mobile':  '?1',
+    'sec-ch-ua-platform':'"Android"',
+    'Accept-Language':   'id-ID,id;q=0.9,en-AU;q=0.8,en;q=0.7,en-US;q=0.6'
 };
 
-function extractCookies(store, res) {
-    const setC = res.headers['set-cookie'];
-    if (!setC) return;
-    setC.forEach(c => {
-        const parts = c.split(';')[0].split('=');
-        if (parts.length > 1) store[parts[0]] = parts.slice(1).join('=');
+// ─── Cookie Manager ───────────────────────────────────────────────────────────
+function createCookieStore() {
+    const store = {};
+    return {
+        extract(res) {
+            const setC = res.headers['set-cookie'];
+            if (!setC) return;
+            setC.forEach(c => {
+                const parts = c.split(';')[0].split('=');
+                if (parts.length > 1) store[parts[0]] = parts.slice(1).join('=');
+            });
+        },
+        get() {
+            return Object.entries(store).map(([k, v]) => `${k}=${v}`).join('; ');
+        }
+    };
+}
+
+// ─── Temp Mail (akunlama) ─────────────────────────────────────────────────────
+async function cekmail(name, pConf) {
+    const res = await axios.get(`https://akunlama.com/api/v1/mail/list?recipient=${name}`, {
+        ...pConf, timeout: 12000
     });
+    if (Array.isArray(res.data) && res.data.length === 0) {
+        return `${name}@akunlama.com`;
+    }
+    // Inbox sudah ada isi, coba nama lain
+    return null;
 }
 
-function cookieString(store) {
-    return Object.entries(store).map(([k, v]) => `${k}=${v}`).join('; ');
+async function getotp(name, pConf) {
+    let messages = [];
+    let tries = 0;
+    while (messages.length === 0 && tries < 25) {
+        await delay(4000);
+        tries++;
+        const res = await axios.get(`https://akunlama.com/api/v1/mail/list?recipient=${name}`, {
+            ...pConf, timeout: 12000
+        });
+        messages = Array.isArray(res.data) ? res.data : [];
+    }
+    if (!messages.length) return null;
+
+    const mail    = messages[0];
+    const htmlRes = await axios.get(
+        `https://akunlama.com/api/v1/mail/getHtml?region=${mail.storage.region}&key=${mail.storage.key}`,
+        { ...pConf, timeout: 12000 }
+    );
+
+    // Parse OTP dari HTML email nanobana
+    const $ = cheerio.load(htmlRes.data);
+    $('script, style').remove();
+    const text = $('body').text().replace(/\s+/g, ' ').trim();
+
+    // Pattern 1: "sign in: 914873"
+    const m1 = text.match(/sign[- ]in[:\s]+(\d{6})/i);
+    if (m1) return m1[1];
+
+    // Pattern 2: "9 1 4 8 7 3" (spasi antar digit)
+    const m2 = text.match(/(\d)\s(\d)\s(\d)\s(\d)\s(\d)\s(\d)/);
+    if (m2) return m2.slice(1, 7).join('');
+
+    // Pattern 3: 6 digit langsung
+    const m3 = text.match(/\b(\d{6})\b/);
+    if (m3) return m3[1];
+
+    // Pattern 4: kumpulin semua digit
+    const digits = text.replace(/\D/g, '');
+    if (digits.length >= 6) return digits.substring(0, 6);
+
+    return null;
 }
 
-function req(method, url, data, headers, timeout = 20000) {
-    return axios({ method, url, data, headers, timeout, validateStatus: () => true });
+// ─── nanobanana.org Auth ──────────────────────────────────────────────────────
+async function sendCode(email, cookies, pConf) {
+    const res = await axios.post('https://nanobanana.org/api/auth/send-code',
+        { email },
+        {
+            headers: { ...baseHeaders, 'Content-Type': 'application/json', origin: 'https://nanobanana.org', referer: 'https://nanobanana.org/sora2' },
+            ...pConf, timeout: 20000
+        }
+    );
+    cookies.extract(res);
+    return res.data;
 }
 
-async function generateSora(prompt, aspect_ratio, n_frames) {
-    const cookies = {};
-    const mail    = new TempMail();
+async function getCsrf(cookies, pConf) {
+    const res = await axios.get('https://nanobanana.org/api/auth/csrf', {
+        headers: { ...baseHeaders, referer: 'https://nanobanana.org/sora2', Cookie: cookies.get() },
+        ...pConf, timeout: 15000
+    });
+    cookies.extract(res);
+    return res.data?.csrfToken;
+}
 
-    // 1. Ambil halaman + kirim OTP
-    const page = await req('GET', 'https://www.nanobana.net/m/sora2', null, baseHeaders, 20000);
-    extractCookies(cookies, page);
-
-    const sendRes = await req('POST', 'https://www.nanobana.net/api/auth/email/send',
-        { email: mail.email },
-        { ...baseHeaders, 'Content-Type': 'application/json', Cookie: cookieString(cookies) },
-        20000
+async function doLogin(email, code, csrfToken, cookies, pConf) {
+    const data = new URLSearchParams({ email, code, redirect: 'false', csrfToken, callbackUrl: 'https://nanobanana.org/sora2' });
+    const res  = await axios.post('https://nanobanana.org/api/auth/callback/email-code',
+        data.toString(),
+        {
+            headers: { ...baseHeaders, 'Content-Type': 'application/x-www-form-urlencoded', 'x-auth-return-redirect': '1', origin: 'https://nanobanana.org', referer: 'https://nanobanana.org/sora2', Cookie: cookies.get() },
+            ...pConf, timeout: 20000
+        }
     );
-    extractCookies(cookies, sendRes);
+    cookies.extract(res);
+    return res.data;
+}
 
-    // 2. Tunggu OTP
-    const code = await mail.waitForCode(90000);
-    if (!code) throw new Error('OTP timeout — email tidak menerima kode. Coba lagi.');
+async function getSession(cookies, pConf) {
+    const res = await axios.get('https://nanobanana.org/api/auth/session', {
+        headers: { ...baseHeaders, referer: 'https://nanobanana.org/sora2', Cookie: cookies.get() },
+        ...pConf, timeout: 15000
+    });
+    cookies.extract(res);
+    return res.data;
+}
 
-    // 3. Login
-    const csrfRes = await req('GET', 'https://www.nanobana.net/api/auth/csrf',
-        null, { ...baseHeaders, Cookie: cookieString(cookies) }, 15000);
-    extractCookies(cookies, csrfRes);
-    const csrfToken = csrfRes.data?.csrfToken;
-
-    const loginData = `email=${encodeURIComponent(mail.email)}&code=${code}&redirect=false&csrfToken=${csrfToken}&callbackUrl=${encodeURIComponent('https://www.nanobana.net/m/sora2')}`;
-    const loginRes  = await req('POST', 'https://www.nanobana.net/api/auth/callback/email-code',
-        loginData,
-        { ...baseHeaders, 'Content-Type': 'application/x-www-form-urlencoded', 'x-auth-return-redirect': '1', Cookie: cookieString(cookies) },
-        20000
+// ─── Sora2 Generate ───────────────────────────────────────────────────────────
+async function submitSora(prompt, aspect_ratio, n_frames, cookies, pConf) {
+    const res = await axios.post('https://nanobanana.org/api/sora2/submit',
+        { model: 'sora2', type: 'text-to-video', prompt, aspect_ratio, n_frames, remove_watermark: true },
+        {
+            headers: { ...baseHeaders, 'Content-Type': 'application/json', origin: 'https://nanobanana.org', referer: 'https://nanobanana.org/sora2', Cookie: cookies.get() },
+            ...pConf, timeout: 30000
+        }
     );
-    extractCookies(cookies, loginRes);
+    cookies.extract(res);
+    return res.data?.task_id;
+}
 
-    await req('GET',  'https://www.nanobana.net/api/auth/session',  null, { ...baseHeaders, Cookie: cookieString(cookies) }, 15000);
-    await req('POST', 'https://www.nanobana.net/api/get-user-info', '',   { ...baseHeaders, Cookie: cookieString(cookies) }, 15000);
+async function checkStatus(taskId, cookies, pConf) {
+    const res = await axios.get(`https://nanobanana.org/api/sora2/status/${taskId}`, {
+        headers: { ...baseHeaders, referer: 'https://nanobanana.org/sora2', Cookie: cookies.get() },
+        ...pConf, timeout: 20000
+    });
+    cookies.extract(res);
+    return res.data?.task;
+}
 
-    // 4. Submit generate
-    const submitRes = await req('POST',
-        'https://www.nanobana.net/api/sora2/text-to-video/generate',
-        { prompt, aspect_ratio, n_frames, remove_watermark: true },
-        { ...baseHeaders, 'Content-Type': 'application/json', Cookie: cookieString(cookies) },
-        30000
-    );
-    extractCookies(cookies, submitRes);
-    const taskId = submitRes.data?.taskId;
-    if (!taskId) throw new Error('Gagal mendapatkan Task ID dari server.');
+// ─── Main Flow ────────────────────────────────────────────────────────────────
+async function generateSora(prompt, aspect_ratio = 'landscape', n_frames = '10') {
+    const pConf  = getRandomProxy();
+    const cookies = createCookieStore();
 
-    // 5. Polling sampai selesai (max 8 menit)
-    const startPoll = Date.now();
-    const MAX_POLL  = 8 * 60 * 1000;
+    // 1. Buat email temp yang kosong
+    let email = null;
+    for (let i = 0; i < 5; i++) {
+        const name = crypto.randomBytes(6).toString('hex');
+        email = await cekmail(name, pConf);
+        if (email) break;
+    }
+    if (!email) throw new Error('Gagal buat temp email.');
+
+    const name = email.split('@')[0];
+
+    // 2. Kirim OTP
+    await sendCode(email, cookies, pConf);
+
+    // 3. Ambil kode OTP dari inbox
+    const code = await getotp(name, pConf);
+    if (!code) throw new Error('OTP timeout — kode tidak diterima.');
+
+    // 4. Login
+    const csrfToken = await getCsrf(cookies, pConf);
+    await doLogin(email, code, csrfToken, cookies, pConf);
+    await getSession(cookies, pConf);
+
+    // 5. Submit generate
+    const taskId = await submitSora(prompt, aspect_ratio, n_frames, cookies, pConf);
+    if (!taskId) throw new Error('Gagal mendapatkan Task ID.');
+
+    // 6. Polling sampai selesai (max 8 menit)
+    const pendingStatus = ['processing', 'pending', 'queue', 'in_queue', 'starting'];
+    const startPoll     = Date.now();
+    const MAX_POLL      = 8 * 60 * 1000;
     let result;
 
     do {
         if (Date.now() - startPoll > MAX_POLL) throw new Error('Generate timeout (>8 menit).');
-        await delay(5000);
-        const statusRes = await req('GET',
-            `https://www.nanobana.net/api/sora2/text-to-video/task/${taskId}?save=1&prompt=${encodeURIComponent(prompt)}`,
-            null, { ...baseHeaders, Cookie: cookieString(cookies) }, 20000
-        );
-        extractCookies(cookies, statusRes);
-        result = statusRes.data;
-    } while (['processing', 'waiting', 'queued'].includes(result?.status));
+        await delay(10000);
+        result = await checkStatus(taskId, cookies, pConf);
+        if (!result) throw new Error('Gagal cek status task.');
+    } while (pendingStatus.includes(result.status?.toLowerCase()));
 
-    if (['failed', 'error'].includes(result?.status)) {
-        throw new Error(`Generate gagal: ${result.error_message || 'Server error'}`);
+    const finalStatus = result.status?.toLowerCase();
+    if (['failed', 'error'].includes(finalStatus)) {
+        throw new Error(`Generate gagal: ${result.error_message || 'Server error / Filtered'}`);
     }
 
-    let videoUrl = null;
-    if (result.resultUrls?.length > 0)  videoUrl = result.resultUrls[0];
-    else if (result.saved?.length > 0)  videoUrl = result.saved[0]?.url;
+    const videoUrl = result.video_url || result.result || null;
     if (!videoUrl) throw new Error('Video selesai tapi URL tidak ditemukan.');
 
     return videoUrl;
@@ -212,7 +259,7 @@ module.exports = function(app) {
         }
 
         try {
-            const videoUrl = await generateSora(prompt, ratio, parseInt(frames));
+            const videoUrl = await generateSora(prompt, ratio, frames);
             return res.json({
                 status: true,
                 prompt,

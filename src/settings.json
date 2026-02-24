@@ -1,0 +1,193 @@
+{
+  "name": "Himmel-Apii",
+  "version": "1.5.6",
+  "description": "Simple and Easy-to-Use API Documentation",
+  "header": {
+    "status": "Online!",
+    "imageSrc": [
+      "https://files.catbox.moe/rlj54b.jpg"
+    ],
+    "imageSize": {
+      "mobile": "130%",
+      "tablet": "130%",
+      "desktop": "150%"
+    }
+  },
+  "apiSettings": {
+    "creator": "Bayu Official",
+    "apiKeys": {
+      "enabled": true,
+      "keys": [
+        {
+          "key": "M0NPI",
+          "label": "Master Key",
+          "access": [
+            "ai"
+          ]
+        }
+      ]
+    }
+  },
+  "links": [
+    {
+      "name": "About Me | バユ",
+      "url": "https://www.about-bayu.web.id"
+    },
+    {
+      "name": "Contact Me | 接触",
+      "url": "https://wa.me/62895406178006"
+    }
+  ],
+  "categories": [
+    {
+      "name": "AI (人工知能)",
+      "items": [
+        {
+          "name": "Text To Image",
+          "desc": "Generate image with text",
+          "path": "/ai/txt2img?prompt="
+        },
+        {
+          "name": "NanoBanana",
+          "desc": "AI Image Generator - Transform images with prompts (need image_url)",
+          "path": "/ai/nanana?url=&prompt="
+        },
+        {
+          "name": "Sora 2",
+          "desc": "Video generator",
+          "path": "/ai/sora?prompt="
+        }
+      ]
+    },
+    {
+      "name": "Downloader (ダウンローダー)",
+      "items": [
+        {
+          "name": "Google Drive",
+          "desc": "Download from Google Drive link",
+          "path": "/downloader/drive?url="
+        },
+        {
+          "name": "Sfile",
+          "desc": "Downloader File",
+          "path": "/downloader/sfile?url="
+        },
+        {
+          "name": "SaveTube",
+          "desc": "Download YouTube video/audio",
+          "path": "/downloader/savetube?url=&format="
+        },
+        {
+          "name": "Terabox",
+          "desc": "Download from Terabox link",
+          "path": "/downloader/terabox?url="
+        },
+        {
+          "name": "TikTok MP3",
+          "desc": "Download TikTok audio",
+          "path": "/downloader/ttmp3?url="
+        },
+        {
+          "name": "TikTok MP4",
+          "desc": "Download TikTok video",
+          "path": "/downloader/ttmp4?url="
+        },
+        {
+          "name": "YouTube MP3",
+          "desc": "Convert YouTube to MP3",
+          "path": "/downloader/ytmp3?url="
+        },
+        {
+          "name": "YouTube MP4",
+          "desc": "Download YouTube video",
+          "path": "/downloader/ytmp4?url="
+        }
+      ]
+    },
+    {
+      "name": "Information (情報)",
+      "items": [
+        {
+          "name": "Alight Motion",
+          "desc": "Get Alight Motion project info",
+          "path": "/info/alightmotion?url="
+        },
+        {
+          "name": "Tri Check",
+          "desc": "Check 3 (Tri) Indonesia SIM card status",
+          "path": "/info/tricheck?nomor="
+        },
+        {
+          "name": "Cek Kuota XL & Axis",
+          "desc": "Check XL/AXIS quota, package, and subscriber information",
+          "path": "/info/cekxL?nomor="
+        },
+        {
+          "name": "Weather",
+          "desc": "Weather information by city",
+          "path": "/info/weather?city="
+        }
+      ]
+    },
+    {
+      "name": "Random (ランダム)",
+      "items": [
+        {
+          "name": "Hentai",
+          "desc": "Random hentai images (NSFW)",
+          "path": "/random/hentai"
+        },
+        {
+          "name": "Blue Archive",
+          "desc": "Blue Archive random images",
+          "path": "/random/ba"
+        }
+      ]
+    },
+    {
+      "name": "Search Tools (検索ツール)",
+      "items": [
+        {
+          "name": "Komiku",
+          "desc": "Search manga on Komiku",
+          "path": "/search/komiku?q="
+        },
+        {
+          "name": "Sfile",
+          "desc": "Search File",
+          "path": "/search/sfile?q="
+        },
+        {
+          "name": "YouTube",
+          "desc": "Search YouTube videos",
+          "path": "/search/youtube?q="
+        },
+        {
+          "name": "QR Code Generator",
+          "desc": "Generate QR Code from any text or URL",
+          "path": "/tools/qrcode?text="
+        }
+      ]
+    },
+    {
+      "name": "Tools (ツール)",
+      "items": [
+        {
+          "name": "Brat Generator",
+          "desc": "Generate Brat-style text images",
+          "path": "/tools/brat?text="
+        },
+        {
+          "name": "Upscale",
+          "desc": "make photo resolution better",
+          "path": "/tools/upscale?url="
+        },
+        {
+          "name": "Free Fire Tools",
+          "desc": "Free Fire utilities",
+          "path": "/tools/fftools?type=all"
+        }
+      ]
+    }
+  ]
+}

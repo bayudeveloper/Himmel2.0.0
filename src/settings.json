@@ -161,11 +161,6 @@
           "name": "YouTube",
           "desc": "Search YouTube videos",
           "path": "/search/youtube?q="
-        },
-        {
-          "name": "QR Code Generator",
-          "desc": "Generate QR Code from any text or URL",
-          "path": "/tools/qrcode?text="
         }
       ]
     },

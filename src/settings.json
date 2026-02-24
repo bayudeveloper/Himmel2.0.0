@@ -189,7 +189,7 @@
         },
         {
           "name": "QR Code Generator",
-          "desc": "Generate QR Code from any text or URL",
+          "desc": "Generate QR Code",
           "path": "/tools/qrcode?text="
         }
       ]

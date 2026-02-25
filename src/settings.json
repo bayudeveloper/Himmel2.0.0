@@ -173,6 +173,11 @@
           "path": "/tools/brat?text="
         },
         {
+          "name": "Tiktok Like",
+          "desc": "Free Tiktok Like",
+          "path": "/tools/tiktoklike?url="
+        },
+        {
           "name": "Upscale",
           "desc": "make photo resolution better",
           "path": "/tools/upscale?url="

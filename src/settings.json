@@ -53,6 +53,11 @@
           "path": "/ai/nanana?url=&prompt=&apikey="
         },
         {
+          "name": "Sora2",
+          "desc": "text to video",
+          "path": "/ai/sora?prompt="
+        },
+        {
           "name": "HD Video",
           "desc": "HD video with AI",
           "path": "/ai/hdvideo?url=&apikey="

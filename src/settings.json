@@ -57,10 +57,15 @@
           "desc": "HD video with AI",
           "path": "/ai/hdvideo?url=&apikey="
         },
-       {
+        {
           "name": "Note Gpt",
           "desc": "Ai answered",
           "path": "/ai/notegpt?url=&prompt=&apikey="
+        },
+        {
+          "name": "Sora 2",
+          "desc": "txt2img",
+          "path": "/ai/sora2?prompt=&aspect_ratio=&n_frames=&apikey="
         },
         {
           "name": "Pixwith",

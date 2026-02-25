@@ -24,6 +24,13 @@
           "access": [
             "ai"
           ]
+        },
+        {
+          "key": "HIMMEL2026",
+          "label": "FreeAcces",
+          "access": [
+            "ai"
+          ]
         }
       ]
     }

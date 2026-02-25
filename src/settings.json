@@ -57,6 +57,11 @@
           "desc": "HD video with AI",
           "path": "/ai/hdvideo?url=&apikey="
         },
+       {
+          "name": "Note Gpt",
+          "desc": "Ai answered",
+          "path": "/ai/notegpt?url=&prompt=&apikey="
+        },
         {
           "name": "Pixwith",
           "desc": "nanobanana, kling01image, nanobanana2, flux2dev, seedream45, chatgpt15",

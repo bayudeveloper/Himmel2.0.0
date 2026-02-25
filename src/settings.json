@@ -56,6 +56,11 @@
           "name": "HD Video",
           "desc": "HD video with AI",
           "path": "/ai/hdvideo?url=&apikey="
+        },
+        {
+          "name": "Pixwith",
+          "desc": "nanobanana, kling01image, nanobanana2, flux2dev, seedream45, chatgpt15",
+          "path": "/ai/pixwith?url=&prompt=&model=&apikey="
         }
       ]
     },

@@ -175,7 +175,7 @@
         {
           "name": "Tiktok Like",
           "desc": "Free Tiktok Like",
-          "path": "/tools/tiktoklike?url="
+          "path": "/tools/freetiktoklike?url="
         },
         {
           "name": "Upscale",

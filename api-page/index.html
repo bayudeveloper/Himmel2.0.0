@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="icon" href="https://files.catbox.moe/rbfc5x.jpg" type="image/jpeg">
     <title id="page">Himmel API</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"/>
@@ -10,106 +10,57 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-    <!-- Loading Screen -->
     <div id="loadingScreen">
         <div class="loader-container">
-            <div class="gif-frame">
-                <div class="gif-wrapper">
-                    <img src="https://files.catbox.moe/tbk8kv.gif" alt="Loading" class="loader-gif">
-                </div>
-            </div>
+            <div class="gif-frame"><div class="gif-wrapper">
+                <img src="https://files.catbox.moe/tbk8kv.gif" alt="Loading" class="loader-gif">
+            </div></div>
             <div class="loader-text">
-                <span class="text-particle" style="--i:1">l</span><span class="text-particle" style="--i:2">o</span><span class="text-particle" style="--i:3">a</span><span class="text-particle" style="--i:4">d</span><span class="text-particle" style="--i:5">i</span><span class="text-particle" style="--i:6">n</span><span class="text-particle" style="--i:7">g</span><span class="dot-particle" style="--i:8">.</span><span class="dot-particle" style="--i:9">.</span><span class="dot-particle" style="--i:10">.</span>
+                <span class="tp" style="--i:1">l</span><span class="tp" style="--i:2">o</span><span class="tp" style="--i:3">a</span><span class="tp" style="--i:4">d</span><span class="tp" style="--i:5">i</span><span class="tp" style="--i:6">n</span><span class="tp" style="--i:7">g</span><span class="dp" style="--i:8">.</span><span class="dp" style="--i:9">.</span><span class="dp" style="--i:10">.</span>
             </div>
-            <div class="progress-minimal">
-                <div class="progress-minimal-bar" id="loadingProgressBar"></div>
-            </div>
+            <div class="progress-bar-wrap"><div class="progress-bar-fill" id="loadingProgressBar"></div></div>
         </div>
     </div>
 
-    <!-- Navbar -->
     <nav class="navbar">
         <div class="nav-inner">
-            <a class="navbar-brand">
-                <div class="brand-logo-wrap">
-                    <img src="https://files.catbox.moe/rbfc5x.jpg" class="brand-logo-img" alt="Himmel">
-                </div>
+            <a class="navbar-brand" id="navBrand">
+                <div class="brand-logo"><img src="https://files.catbox.moe/rbfc5x.jpg" alt="Himmel"></div>
                 <span id="header" class="brand-text"></span>
                 <div id="versionHeader" class="version-badge"></div>
             </a>
             <div class="nav-actions">
-                <div class="api-call-counter" id="apiCallCounter" title="Total API calls">
-                    <span class="counter-icon">⚡</span>
+                <div class="api-counter" id="apiCallCounter">
+                    <span>⚡</span>
                     <span id="counterVal">0</span>
-                    <span class="counter-label">calls</span>
+                    <span class="counter-lbl">calls</span>
                 </div>
-                <a href="/admin.html" class="nav-icon-btn" title="Admin">⚙️</a>
+                <a href="/admin.html" class="nav-icon-btn">⚙️</a>
             </div>
         </div>
     </nav>
 
-    <!-- Main -->
-    <div class="page-container">
-
-        <div class="banner-wrapper">
-            <img id="dynamicImage" class="banner-img" src="" alt="Banner">
-        </div>
+    <div class="page-wrap">
+        <div class="banner-wrap"><img id="dynamicImage" class="banner-img" src="" alt=""></div>
 
         <div class="title-row">
             <h1 id="name" class="page-title"></h1>
             <div id="version" class="version-badge"></div>
         </div>
 
-        <div class="stats-grid" id="statsGrid">
-            <div class="stat-card">
-                <div class="stat-icon">⏱️</div>
-                <div class="stat-info">
-                    <div class="stat-label">Server Uptime <span class="live-dot"></span></div>
-                    <div class="stat-value" id="valUptime">—</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">👥</div>
-                <div class="stat-info">
-                    <div class="stat-label">Monthly Visitors <span class="live-dot"></span></div>
-                    <div class="stat-value" id="valUsers">—</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">💾</div>
-                <div class="stat-info">
-                    <div class="stat-label">Server RAM <span class="live-dot"></span></div>
-                    <div class="stat-value" id="valRam">—</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">📱</div>
-                <div class="stat-info">
-                    <div class="stat-label">Your Device</div>
-                    <div class="stat-value" id="valDevice">—</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🔋</div>
-                <div class="stat-info">
-                    <div class="stat-label">Battery</div>
-                    <div class="stat-value" id="valBattery">—</div>
-                </div>
-            </div>
-            <div class="stat-card stat-wide">
-                <div class="stat-icon">🌐</div>
-                <div class="stat-info">
-                    <div class="stat-label">Your IP Address</div>
-                    <div class="stat-value" id="valIP">—</div>
-                </div>
-            </div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-info"><div class="stat-lbl">Uptime <span class="live-dot"></span></div><div class="stat-val" id="valUptime">—</div></div></div>
+            <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-info"><div class="stat-lbl">Monthly Visitors <span class="live-dot"></span></div><div class="stat-val" id="valUsers">—</div></div></div>
+            <div class="stat-card"><div class="stat-icon">💾</div><div class="stat-info"><div class="stat-lbl">RAM <span class="live-dot"></span></div><div class="stat-val" id="valRam">—</div></div></div>
+            <div class="stat-card"><div class="stat-icon">📱</div><div class="stat-info"><div class="stat-lbl">Your Device</div><div class="stat-val" id="valDevice">—</div></div></div>
+            <div class="stat-card"><div class="stat-icon">🔋</div><div class="stat-info"><div class="stat-lbl">Battery</div><div class="stat-val" id="valBattery">—</div></div></div>
+            <div class="stat-card stat-wide"><div class="stat-icon">🌐</div><div class="stat-info"><div class="stat-lbl">Your IP</div><div class="stat-val" id="valIP">—</div></div></div>
         </div>
 
         <p id="description" class="page-desc"></p>
         <div id="apiLinks" class="api-links"></div>
 
-        <div class="search-wrapper">
+        <div class="search-wrap">
             <span class="search-icon">⌕</span>
             <input type="text" id="searchInput" class="search-input" placeholder="Search API…">
         </div>
@@ -117,24 +68,23 @@
         <div id="apiContent"></div>
     </div>
 
-    <!-- Modal -->
     <div class="modal fade" id="apiResponseModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" id="modalDialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <div>
                         <h5 class="modal-title" id="apiResponseModalLabel"></h5>
-                        <p class="modal-desc mb-0" id="apiResponseModalDesc"></p>
+                        <p class="modal-sub mb-0" id="apiResponseModalDesc"></p>
                     </div>
-                    <button type="button" class="modal-close-btn" data-bs-dismiss="modal">×</button>
+                    <button class="modal-x" data-bs-dismiss="modal">×</button>
                 </div>
                 <div class="modal-body">
                     <pre id="apiEndpoint" class="code-block"></pre>
                     <div id="apiQueryInputContainer"></div>
                     <div id="apiResponseLoading" class="d-none d-flex justify-content-center align-items-center" style="height:100px">
-                        <div class="himmel-spinner"></div>
+                        <div class="h-spinner"></div>
                     </div>
-                    <pre id="apiResponseContent" class="d-none mt-2 code-block response-block"></pre>
+                    <pre id="apiResponseContent" class="d-none mt-2 code-block resp-block"></pre>
                 </div>
                 <div class="modal-footer">
                     <button id="submitQueryBtn" class="btn-himmel">Submit</button>
@@ -144,7 +94,6 @@
     </div>
 
     <div id="toastMsg"></div>
-
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>

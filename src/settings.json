@@ -55,9 +55,9 @@
           "path": "/ai/faceswap?foto1=&foto2=&apikey="
         },
         {
-          "name": "Chat Gpt",
-          "desc": "chat with openai",
-          "path": "/ai/chatgpt?q=&apikey="
+          "name": "Ai chat",
+          "desc": "Chat with ai",
+          "path": "/ai/chat?q=&apikey="
         },
         {
           "name": "HD Video",

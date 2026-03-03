@@ -195,6 +195,11 @@
           "path": "/tools/brat?text="
         },
         {
+          "name": "Brat Video Generator",
+          "desc": "Generate Brat-style text video",
+          "path": "/tools/bratvideo?text="
+        },
+        {
           "name": "Tiktok Like",
           "desc": "Free Tiktok Like",
           "path": "/tools/freetiktoklike?url="

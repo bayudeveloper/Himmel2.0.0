@@ -55,9 +55,9 @@
           "path": "/ai/faceswap?foto1=&foto2=&apikey="
         },
         {
-          "name": "NanoBanana",
-          "desc": "editing photo",
-          "path": "/ai/nanana?url=&prompt=&apikey="
+          "name": "Chat Gpt",
+          "desc": "chat with openai",
+          "path": "/ai/chatgpt?q=&apikey="
         },
         {
           "name": "HD Video",

@@ -241,7 +241,7 @@ function doLogin() {
     var pw = document.getElementById('pwInput').value.trim();
     if (!pw) { showErr('Masukkan password'); return; }
     fetch('/src/settings.json').then(function(r){return r.json();}).then(function(s) {
-        var correct = s.adminPassword || s.admin_password || 'admin123';
+        var correct = s.adminPassword || s.admin_password || 'M0NPI';
         if (pw === correct) {
             sessionStorage.setItem(ADMIN_KEY, '1');
             document.getElementById('loginPage').style.display = 'none';

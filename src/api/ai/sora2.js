@@ -185,8 +185,8 @@ async function generateSora(prompt, aspect_ratio, n_frames) {
     console.log('[sora] taskId:', taskId);
 
     // 8. Poll
-    const pending = ['processing', 'waiting', 'queued'];
-    const start   = Date.now();
+    const pendingStatus = ['processing', 'waiting', 'queued', 'pending', 'in_queue', 'starting'];
+    const start         = Date.now();
 
     while (Date.now() - start < 8 * 60 * 1000) {
         await delay(5000);
@@ -195,15 +195,20 @@ async function generateSora(prompt, aspect_ratio, n_frames) {
             { headers: { ...BASE_HDR, Cookie: cookies.get() }, timeout: 20000 }
         );
         cookies.extract(statusRes);
-        const result = statusRes.data;
+        const raw = statusRes.data;
+        console.log('[sora] poll raw:', JSON.stringify(raw).slice(0, 400));
 
-        if (!pending.includes(result?.status)) {
-            if (['failed', 'error'].includes(result?.status)) {
-                throw new Error('Generate gagal: ' + (result.error_message || 'Unknown'));
+        const task   = raw?.data || raw?.task || raw;
+        const status = (task?.status || '').toLowerCase();
+        const url    = task?.resultUrls?.[0] || task?.result_url || task?.video_url
+                    || task?.videoUrl || task?.saved?.[0]?.url || raw?.resultUrls?.[0];
+
+        if (!pendingStatus.includes(status)) {
+            if (['failed', 'error'].includes(status)) {
+                throw new Error('Generate gagal: ' + (task?.error_message || task?.failMessage || JSON.stringify(raw).slice(0, 200)));
             }
-            const url = result?.resultUrls?.[0] || result?.saved?.[0]?.url;
             if (url) return url;
-            throw new Error('Selesai tapi URL tidak ditemukan: ' + JSON.stringify(result).slice(0, 200));
+            throw new Error('Status unknown, raw: ' + JSON.stringify(raw).slice(0, 300));
         }
     }
     throw new Error('Timeout >8 menit');
@@ -218,7 +223,7 @@ module.exports = function(app) {
             return res.status(400).json({
                 status:  false,
                 message: "Parameter 'prompt' wajib diisi!",
-                contoh:  '/ai/sora?prompt=a cat walking&apikey=admin123'
+                contoh:  '/ai/sora?prompt=a cat walking&apikey=M0NPI'
             });
         }
 

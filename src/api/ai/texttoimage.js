@@ -4,82 +4,95 @@ const { requireApiKey } = require('../../lib/apiKeyAuth');
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
 // ══════════════════════════════════════════════════════════════════════════
-// PROVIDER 1: POLLINATIONS.AI — no login, no key
+// PROVIDER 1: POLLINATIONS — beberapa model, fallback antar model
 // ══════════════════════════════════════════════════════════════════════════
+const POLL_MODELS = ['flux', 'flux-realism', 'flux-anime', 'turbo'];
+
 async function pollinationsGenerate(prompt, width, height) {
-    const encoded = encodeURIComponent(prompt);
-    const url     = `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&nologo=true&enhance=true&model=flux`;
-
-    // Pollinations langsung return gambar (binary)
-    const res = await axios.get(url, {
-        responseType: 'arraybuffer',
-        timeout:      60000,
-        headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-    });
-
-    if (!res.data || res.data.byteLength < 1000) throw new Error('Pollinations return gambar kosong');
-
-    const base64 = Buffer.from(res.data).toString('base64');
-    return {
-        source: 'Pollinations.ai (Flux)',
-        image:  `data:image/jpeg;base64,${base64}`,
-        url:    url
-    };
-}
-
-// ══════════════════════════════════════════════════════════════════════════
-// PROVIDER 2: HUGGING FACE SPACES — no key
-// ══════════════════════════════════════════════════════════════════════════
-async function huggingfaceGenerate(prompt) {
-    // Stable Diffusion XL via public space
-    const spaces = [
-        'https://stabilityai-stable-diffusion-xl-base-1-0.hf.space',
-        'https://hysts-stable-diffusion-v2-1.hf.space',
-        'https://runwayml-stable-diffusion-v1-5.hf.space'
-    ];
-
-    for (const space of spaces) {
+    for (const model of POLL_MODELS) {
         try {
-            // Step 1: join queue
-            const joinRes = await axios.post(`${space}/queue/join`, {
-                data:         [prompt, '', 7.5, 512, 512, 50],
-                fn_index:     0,
-                session_hash: Math.random().toString(36).slice(2)
-            }, {
-                headers: { 'Content-Type': 'application/json' },
-                timeout: 15000
+            const seed    = Math.floor(Math.random() * 999999);
+            const encoded = encodeURIComponent(prompt);
+            const url     = `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&seed=${seed}&nologo=true&model=${model}`;
+
+            const res = await axios.get(url, {
+                responseType: 'arraybuffer',
+                timeout:      60000,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                    'Referer':    'https://pollinations.ai/'
+                },
+                maxRedirects: 5
             });
 
-            const hash = joinRes.data?.event_id || joinRes.data?.hash;
-            if (!hash) continue;
-
-            // Step 2: poll status
-            const start = Date.now();
-            while (Date.now() - start < 60000) {
-                await delay(3000);
-                const dataRes = await axios.get(`${space}/queue/status`, {
-                    params:  { event_id: hash },
-                    timeout: 10000
-                });
-                if (dataRes.data?.status === 'COMPLETE') {
-                    const imgPath = dataRes.data?.output?.data?.[0];
-                    if (imgPath) {
-                        // Bisa berupa base64 atau URL
-                        if (typeof imgPath === 'string' && imgPath.startsWith('data:')) {
-                            return { source: 'Hugging Face (SD)', image: imgPath, url: null };
-                        }
-                        if (typeof imgPath === 'object' && imgPath.url) {
-                            return { source: 'Hugging Face (SD)', image: imgPath.url, url: imgPath.url };
-                        }
-                    }
-                }
-                if (dataRes.data?.status === 'FAILED') break;
+            if (res.data && res.data.byteLength > 1000) {
+                return {
+                    source: `Pollinations.ai (${model})`,
+                    image:  'data:image/jpeg;base64,' + Buffer.from(res.data).toString('base64'),
+                    url
+                };
             }
         } catch (_) {}
     }
-    throw new Error('Semua Hugging Face space gagal');
+    throw new Error('Semua model Pollinations gagal');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// PROVIDER 2: HUGGING FACE — Stable Diffusion via Inference API publik
+// ══════════════════════════════════════════════════════════════════════════
+async function huggingfaceGenerate(prompt) {
+    const models = [
+        'stabilityai/stable-diffusion-2-1',
+        'runwayml/stable-diffusion-v1-5',
+        'CompVis/stable-diffusion-v1-4'
+    ];
+
+    for (const model of models) {
+        try {
+            const res = await axios.post(
+                `https://api-inference.huggingface.co/models/${model}`,
+                { inputs: prompt },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'User-Agent':   'Mozilla/5.0'
+                        // No Authorization = anonymous/free tier
+                    },
+                    responseType: 'arraybuffer',
+                    timeout:      90000
+                }
+            );
+
+            if (res.data && res.data.byteLength > 1000) {
+                return {
+                    source: `Hugging Face (${model.split('/')[1]})`,
+                    image:  'data:image/jpeg;base64,' + Buffer.from(res.data).toString('base64'),
+                    url:    null
+                };
+            }
+        } catch (_) {}
+    }
+    throw new Error('Semua model Hugging Face gagal');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// PROVIDER 3: LEXICA.ART — search-based, no key
+// ══════════════════════════════════════════════════════════════════════════
+async function lexicaGenerate(prompt) {
+    const res = await axios.get('https://lexica.art/api/v1/search', {
+        params:  { q: prompt },
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+        timeout: 15000
+    });
+    const images = res.data?.images;
+    if (!images?.length) throw new Error('Lexica tidak return gambar');
+    // Ambil gambar pertama yang relevan
+    const img = images[0];
+    return {
+        source: 'Lexica.art',
+        image:  img.src || img.srcSmall,
+        url:    img.src || img.srcSmall
+    };
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -93,11 +106,10 @@ module.exports = function(app) {
      *   prompt  : deskripsi gambar (wajib)
      *   width   : lebar (default: 1024)
      *   height  : tinggi (default: 1024)
-     *   model   : flux / sd (default: flux)
      *   apikey  : API key (wajib)
      */
     app.get('/ai/txt2img', requireApiKey('ai'), async (req, res) => {
-        const { prompt, width = '1024', height = '1024', model = 'flux' } = req.query;
+        const { prompt, width = '1024', height = '1024' } = req.query;
 
         if (!prompt) {
             return res.status(400).json({
@@ -107,23 +119,31 @@ module.exports = function(app) {
             });
         }
 
-        // ── POLLINATIONS (utama) ──────────────────────────────────────────
+        // 1. Pollinations
         try {
             const result = await pollinationsGenerate(prompt, width, height);
             return res.json({ status: true, prompt, ...result });
-        } catch (polErr) {
-            console.error('[txt2img] Pollinations error:', polErr.message);
+        } catch (e1) {
+            console.error('[txt2img] Pollinations:', e1.message);
 
-            // ── HUGGING FACE (fallback) ───────────────────────────────────
+            // 2. Hugging Face
             try {
                 const result = await huggingfaceGenerate(prompt);
                 return res.json({ status: true, prompt, ...result });
-            } catch (hfErr) {
-                console.error('[txt2img] HuggingFace error:', hfErr.message);
-                return res.status(500).json({
-                    status: false,
-                    error:  `Pollinations: ${polErr.message} | HuggingFace: ${hfErr.message}`
-                });
+            } catch (e2) {
+                console.error('[txt2img] HuggingFace:', e2.message);
+
+                // 3. Lexica
+                try {
+                    const result = await lexicaGenerate(prompt);
+                    return res.json({ status: true, prompt, ...result });
+                } catch (e3) {
+                    console.error('[txt2img] Lexica:', e3.message);
+                    return res.status(500).json({
+                        status: false,
+                        error:  `Pollinations: ${e1.message} | HuggingFace: ${e2.message} | Lexica: ${e3.message}`
+                    });
+                }
             }
         }
     });

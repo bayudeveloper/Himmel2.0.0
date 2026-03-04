@@ -223,7 +223,7 @@ module.exports = function(app) {
             return res.status(400).json({
                 status:  false,
                 message: "Parameter 'prompt' wajib diisi!",
-                contoh:  '/ai/sora?prompt=a cat walking&apikey=M0NPI'
+                contoh:  '/ai/sora?prompt=a cat walking&apikey=admin123'
             });
         }
 

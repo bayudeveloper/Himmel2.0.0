@@ -126,7 +126,7 @@ async function generateSora(prompt, aspect_ratio, n_frames) {
     cookies.extract(page);
 
     // 2. Kirim OTP
-    const sendRes = await axios.post('https://www.nanobana.net/api/auth/send-code',
+    const sendRes = await axios.post('https://www.nanobana.net/api/auth/email/send',
         { email: mailData.email },
         { headers: { ...BASE_HDR, Cookie: cookies.get() }, timeout: 20000 }
     );
@@ -218,7 +218,7 @@ module.exports = function(app) {
             return res.status(400).json({
                 status:  false,
                 message: "Parameter 'prompt' wajib diisi!",
-                contoh:  '/ai/sora?prompt=a cat walking&apikey=admin277'
+                contoh:  '/ai/sora?prompt=a cat walking&apikey=admin123'
             });
         }
 

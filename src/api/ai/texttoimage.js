@@ -115,7 +115,7 @@ module.exports = function(app) {
             return res.status(400).json({
                 status:  false,
                 message: "Parameter 'prompt' wajib diisi!",
-                contoh:  '/ai/txt2img?prompt=anime girl&apikey=M0NPI'
+                contoh:  '/ai/txt2img?prompt=anime girl&apikey=admin123'
             });
         }
 

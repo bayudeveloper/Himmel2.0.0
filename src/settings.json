@@ -60,6 +60,11 @@
           "path": "/ai/chat?q=&apikey="
         },
         {
+          "name": "Kling Ai",
+          "desc": "Text to video",
+          "path": "/ai/kling?prompt=&apikey="
+        },
+        {
           "name": "HD Video",
           "desc": "HD video with AI",
           "path": "/ai/hdvideo?url=&apikey="
@@ -70,9 +75,9 @@
           "path": "/ai/notegpt?url=&prompt=&apikey="
         },
         {
-          "name": "Sora 2",
-          "desc": "txt2img",
-          "path": "/ai/sora2?prompt=&aspect_ratio=&n_frames=&apikey="
+          "name": "Leonardo & Ideogram",
+          "desc": "Text to Image",
+          "path": "/ai/txt2img?prompt=&apikey="
         },
         {
           "name": "Pixwith",

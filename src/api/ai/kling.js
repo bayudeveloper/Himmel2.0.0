@@ -4,9 +4,15 @@ const { requireApiKey } = require('../../lib/apiKeyAuth');
 const TEMP_MAIL = 'https://himmel-temp-mail-v155.vercel.app';
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
-// ─── Temp Mail ─────────────────────────────────────────────────────────────
+// ─── Temp Mail — hindari guerrilla domain ────────────────────────────────────
 async function createEmail() {
-    const res = await axios.post(`${TEMP_MAIL}/api/generate`, {}, { timeout: 15000 });
+    for (let i = 0; i < 5; i++) {
+        const res = await axios.post(`${TEMP_MAIL}/api/generate`, { email: '' }, { timeout: 15000 });
+        if (res.data?.success && res.data.provider !== 'guerrilla') return res.data;
+        await delay(1000);
+    }
+    // Last resort: pakai guerrilla
+    const res = await axios.post(`${TEMP_MAIL}/api/generate`, { email: '' }, { timeout: 15000 });
     if (!res.data?.success) throw new Error('Gagal buat temp email');
     return res.data;
 }
@@ -35,26 +41,23 @@ async function waitForOTP(mailData, maxWait = 120000) {
             const content = (text + ' ' + html)
                 .replace(/<[^>]+>/g, ' ')
                 .replace(/&nbsp;/gi, ' ')
-                .replace(/\s+/g, ' ')
-                .trim();
+                .replace(/\s+/g, ' ').trim();
 
-            // OTP extraction patterns
             const patterns = [
                 /verification[- ]code[:\s]+(\d{4,8})/i,
                 /your code[:\s]+(\d{4,8})/i,
                 /code[:\s]+(\d{4,8})/i,
                 /otp[:\s]+(\d{4,8})/i,
-                /(\d)\s(\d)\s(\d)\s(\d)\s(\d)\s(\d)/,  // spaced digits
+                /(\d)\s(\d)\s(\d)\s(\d)\s(\d)\s(\d)/,
                 /\b(\d{6})\b/,
                 /\b(\d{4})\b/
             ];
 
             for (const pat of patterns) {
                 const m = content.match(pat);
-                if (m) {
-                    if (pat.source.includes('\\s(\\d)')) return m.slice(1).join('');
-                    return m[1];
-                }
+                if (!m) continue;
+                if (m.length > 2 && !m[0].includes(' ') === false) return m.slice(1).join('');
+                return m[1];
             }
         } catch (_) {}
     }
@@ -65,7 +68,7 @@ async function waitForOTP(mailData, maxWait = 120000) {
 // KLING AI
 // ══════════════════════════════════════════════════════════════════════════
 const KLING_HDR = {
-    'User-Agent':      'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+    'User-Agent':      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
     'Accept':          'application/json, text/plain, */*',
     'Accept-Language': 'en-US,en;q=0.9',
     'Content-Type':    'application/json',
@@ -73,19 +76,21 @@ const KLING_HDR = {
     'Referer':         'https://klingai.com/'
 };
 
-// Step 1 — Minta OTP ke email
 async function klingRequestOTP(email) {
+    // type: 1 = email login/register
     const res = await axios.post('https://klingai.com/api/user/email/send-code',
-        { email, type: 1 },  // type 1 = register/login
+        { email, type: 1 },
         { headers: KLING_HDR, timeout: 20000 }
     );
-    if (res.data?.code !== 0 && res.data?.code !== 200) {
-        throw new Error('Kling kirim OTP gagal: ' + JSON.stringify(res.data));
+
+    const code = res.data?.status || res.data?.code;
+    // 0 atau 200 = sukses
+    if (code !== 0 && code !== 200 && res.status !== 200) {
+        throw new Error('Kling kirim OTP gagal: ' + JSON.stringify(res.data).slice(0, 200));
     }
     return true;
 }
 
-// Step 2 — Login dengan OTP
 async function klingLoginWithOTP(email, code) {
     const res = await axios.post('https://klingai.com/api/user/email/login',
         { email, code: String(code), type: 1 },
@@ -100,16 +105,15 @@ async function klingLoginWithOTP(email, code) {
     return token;
 }
 
-// Step 3 — Submit generate video
 async function klingSubmit(token, prompt, duration, ratio) {
     const res = await axios.post('https://klingai.com/api/works/text2video/submit',
         {
-            inputs: [{ inputType: 'text', inputVal: prompt }],
+            inputs:    [{ inputType: 'text', inputVal: prompt }],
             arguments: [
-                { name: 'duration',  value: String(duration) },
-                { name: 'ratio',     value: ratio },
-                { name: 'quality',   value: 'high' },
-                { name: 'cfg',       value: '0.5' }
+                { name: 'duration', value: String(duration) },
+                { name: 'ratio',    value: ratio },
+                { name: 'quality',  value: 'high' },
+                { name: 'cfg',      value: '0.5' }
             ],
             type: 'mmu_txt2video_aiweb'
         },
@@ -124,44 +128,35 @@ async function klingSubmit(token, prompt, duration, ratio) {
     return taskId;
 }
 
-// Step 4 — Poll status
 async function klingPollStatus(token, taskId) {
     const start = Date.now();
-
     while (Date.now() - start < 10 * 60 * 1000) {
         await delay(8000);
+        try {
+            const res = await axios.get(
+                `https://klingai.com/api/works/status/${taskId}`,
+                { headers: { ...KLING_HDR, 'Cookie': `token=${token}` }, timeout: 20000 }
+            );
 
-        const res = await axios.get(
-            `https://klingai.com/api/works/status/${taskId}`,
-            {
-                headers: { ...KLING_HDR, 'Cookie': `token=${token}` },
-                timeout: 20000
+            const task  = res.data?.data?.task;
+            const works = res.data?.data?.works;
+            if (!task) continue;
+
+            const status = task.status;
+            if ([3, 4, 'succeed', 'success', 'completed'].includes(status)) {
+                const url = works?.[0]?.resource?.resource
+                    || works?.[0]?.video_url
+                    || task.video_url;
+                if (url) return url;
+                throw new Error('Selesai tapi URL tidak ditemukan');
             }
-        );
-
-        const task  = res.data?.data?.task;
-        const works = res.data?.data?.works;
-        if (!task) continue;
-
-        // status: 1=pending, 2=processing, 3=success(?), 4=succeed, 5=failed
-        const status = task.status;
-
-        if ([3, 4, 'succeed', 'success', 'completed'].includes(status)) {
-            const videoUrl =
-                works?.[0]?.resource?.resource ||
-                works?.[0]?.video_url          ||
-                task.video_url                 ||
-                works?.[0]?.coverUrl;
-
-            if (videoUrl) return videoUrl;
-            throw new Error('Kling selesai tapi URL tidak ditemukan dalam response');
-        }
-
-        if ([5, 'failed', 'error'].includes(status)) {
-            throw new Error('Kling generation gagal: ' + (task.failMessage || task.fail_message || 'Unknown error'));
+            if ([5, 'failed', 'error'].includes(status)) {
+                throw new Error('Kling gagal: ' + (task.failMessage || task.fail_message || 'Unknown'));
+            }
+        } catch (e) {
+            if (e.message.includes('Selesai') || e.message.includes('Kling gagal')) throw e;
         }
     }
-
     throw new Error('Kling timeout (>10 menit)');
 }
 
@@ -174,7 +169,7 @@ module.exports = function(app) {
      *
      * Query params:
      *   prompt   : deskripsi video (wajib)
-     *   duration : 5 / 10 (default: 5 detik)
+     *   duration : 5 / 10 (default: 5)
      *   ratio    : 16:9 / 9:16 / 1:1 (default: 16:9)
      *   apikey   : API key (wajib)
      */
@@ -190,25 +185,19 @@ module.exports = function(app) {
         }
 
         try {
-            // 1. Buat temp email
             const mailData = await createEmail();
-            console.log('[kling] email:', mailData.email);
+            console.log('[kling] email:', mailData.email, '| provider:', mailData.provider);
 
-            // 2. Request OTP ke Kling
             await klingRequestOTP(mailData.email);
 
-            // 3. Tunggu OTP masuk ke inbox
             const otp = await waitForOTP(mailData);
             console.log('[kling] otp:', otp);
 
-            // 4. Login
             const token = await klingLoginWithOTP(mailData.email, otp);
 
-            // 5. Submit generate
             const taskId = await klingSubmit(token, prompt, duration, ratio);
             console.log('[kling] taskId:', taskId);
 
-            // 6. Poll sampai selesai
             const videoUrl = await klingPollStatus(token, taskId);
 
             return res.json({
@@ -221,10 +210,7 @@ module.exports = function(app) {
 
         } catch (err) {
             console.error('[kling] error:', err.message);
-            return res.status(500).json({
-                status: false,
-                error:  err.message
-            });
+            return res.status(500).json({ status: false, error: err.message });
         }
     });
 };

@@ -65,6 +65,11 @@
           "path": "/ai/sora?prompt=&apikey="
         },
         {
+          "name": "Sora Ai Status",
+          "desc": "Job status",
+          "path": "/ai/sora/status/:jobId?apikey="
+        },
+        {
           "name": "HD Video",
           "desc": "HD video with AI",
           "path": "/ai/hdvideo?url=&apikey="

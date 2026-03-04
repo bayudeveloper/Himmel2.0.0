@@ -60,9 +60,9 @@
           "path": "/ai/chat?q=&apikey="
         },
         {
-          "name": "Kling Ai",
+          "name": "Sora Ai",
           "desc": "Text to video",
-          "path": "/ai/kling?prompt=&apikey="
+          "path": "/ai/sora?prompt=&apikey="
         },
         {
           "name": "HD Video",

@@ -46,6 +46,15 @@ const MODELS = {
     'chatgpt15'   : { model_id: '1-37', options: { prompt_optimization: true, num_outputs: 1, aspect_ratio: '1:1', quality: 'low' } }
 };
 
+// Kata-kata 6 huruf kapital yang bukan OTP
+const OTP_BLACKLIST = new Set([
+    'PLEASE', 'THANKS', 'HELLO', 'ENTER', 'START', 'SHARE',
+    'NEVER', 'OTHER', 'STAFF', 'EMAIL', 'CONTA', 'SUPPO',
+    'RIGHT', 'EXPLO', 'YOURS', 'USING', 'WELCO', 'THRIL',
+    'VALID', 'FINAL', 'SIGNI', 'GENER', 'VERIF', 'EXPIR',
+    'REQUE', 'INITI', 'DISRE', 'CONTA', 'KEEPE', 'WISHE'
+]);
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function gensesi() {
     let s = '';
@@ -55,6 +64,76 @@ function gensesi() {
 
 function sleep(ms) {
     return new Promise(r => setTimeout(r, ms));
+}
+
+// ── OTP Extractor — multi-layer ───────────────────────────────────────────────
+/**
+ * Format OTP pixwith: 6 huruf kapital, contoh: VWALQV
+ * Subject: "[VWALQV]Verification Code for Your pixwith.ai Account"
+ * Body   : "Verification code: VWALQV"
+ *
+ * Urutan deteksi:
+ *  1. Subject bracket [XXXXXX]
+ *  2. "Verification code: XXXXXX" di body
+ *  3. "code: XXXXXX" generic
+ *  4. 6 huruf kapital standalone (dengan blacklist)
+ *  5. Fallback angka 6 digit
+ *  6. Fallback angka 4-8 digit
+ */
+function extractOtp(rawBody, subject = '') {
+    // ── Layer 1: Subject bracket ──────────────────────────────────────────────
+    if (subject) {
+        const m = subject.match(/\[([A-Z]{4,8})\]/);
+        if (m && !OTP_BLACKLIST.has(m[1])) return m[1];
+
+        const m2 = subject.match(/(?:code|kode|otp)[:\s]+([A-Z0-9]{4,8})/i);
+        if (m2) return m2[1];
+    }
+
+    // ── Layer 2: Parse body sebagai HTML ──────────────────────────────────────
+    let text = rawBody || '';
+    try {
+        const $ = cheerio.load(rawBody);
+        $('script, style, head').remove();
+        text = $('body').text();
+    } catch {
+        text = rawBody || '';
+    }
+    // Normalize whitespace tapi jaga newline supaya context ga hilang
+    text = text.replace(/[ \t]+/g, ' ').trim();
+
+    // ── Layer 3: Pattern dari paling spesifik ke paling umum ─────────────────
+    const patterns = [
+        // Exact pixwith — "Verification code: VWALQV"
+        /[Vv]erification\s+code\s*:\s*([A-Z]{6})\b/,
+        /[Vv]erification\s+code\s*:\s*([A-Z0-9]{4,8})\b/,
+        // Umum — "code: XXXXX"
+        /\bcode\s*[:\-]\s*([A-Z]{6})\b/i,
+        /\bcode\s*[:\-]\s*([A-Z0-9]{4,8})\b/i,
+        // OTP / kode label
+        /\b(?:OTP|kode)\s*[:\-]\s*([A-Z0-9]{4,8})\b/i,
+        // 6 huruf kapital standalone (pixwith style)
+        /\b([A-Z]{6})\b/g,
+        // Fallback angka
+        /\b([0-9]{6})\b/,
+        /\b([0-9]{4,8})\b/,
+    ];
+
+    for (const p of patterns) {
+        if (p.flags && p.flags.includes('g')) {
+            // Global flag — cari semua, filter blacklist
+            const all = [...text.matchAll(p)];
+            for (const m of all) {
+                if (!OTP_BLACKLIST.has(m[1])) return m[1];
+            }
+        } else {
+            const m = text.match(p);
+            if (m) {
+                if (!OTP_BLACKLIST.has(m[1])) return m[1];
+            }
+        }
+    }
+    return null;
 }
 
 // ── Himmel Temp Mail Functions ────────────────────────────────────────────────
@@ -100,68 +179,54 @@ async function himmelGetMessage(email, msgId, token, provider = 'mailtm') {
     const d = res.data;
     if (!d.success) return '';
     const msg = d.message || {};
+    // html lebih lengkap, tapi kalau kosong fallback ke text
     return msg.html || msg.text || '';
 }
 
 /**
- * Ekstrak OTP dari body/subject email
- * Format pixwith: 6 huruf kapital, contoh: VWALQV
- * Subject: [VWALQV]Verification Code for Your pixwith.ai Account
- * Body   : Verification code: VWALQV
+ * Polling OTP dari Himmel inbox
+ *
+ * Strategy:
+ *  - Tunggu 8 detik dulu (biar email sempet masuk) baru mulai poll
+ *  - Poll tiap 5 detik, max 20x (total ~108 detik)
+ *  - Tiap poll: cek subject dulu (paling cepat), baru fetch body
  */
-function extractOtp(raw, subject = '') {
-    // 1. Coba dari subject dulu — format [XXXXXX]
-    if (subject) {
-        const mSub = subject.match(/\[([A-Z]{6})\]/);
-        if (mSub) return mSub[1];
-    }
+async function pollOtp(email, token, provider, maxRetry = 20, interval = 5000) {
+    // Tunggu dulu sebelum poll pertama — email perlu waktu masuk
+    await sleep(8000);
 
-    // 2. Parse body
-    const $ = cheerio.load(raw);
-    $('script, style').remove();
-    const text = $('body').text().replace(/\s+/g, ' ').trim();
-
-    const patterns = [
-        /Verification\s+code[:\s]+([A-Z]{6})\b/i,   // "Verification code: VWALQV"
-        /\bcode[:\s]+([A-Z]{6})\b/i,                 // "code: VWALQV"
-        /\b([A-Z]{6})\b/,                            // 6 huruf kapital standalone
-        /\b([0-9]{6})\b/,                            // fallback 6 angka
-        /\b([0-9]{4})\b/,                            // fallback 4 angka
-    ];
-
-    for (const p of patterns) {
-        const m = text.match(p);
-        if (m) return m[1];
-    }
-    return null;
-}
-
-/**
- * Polling OTP dari Himmel inbox — max 75 detik (15x @ 5 detik)
- */
-async function pollOtp(email, token, provider, maxRetry = 15, interval = 5000) {
     for (let i = 0; i < maxRetry; i++) {
-        await sleep(interval);
         try {
             const msgs = await himmelInbox(email, token, provider);
-            if (!msgs.length) continue;
 
-            const latest = msgs[0];
-            const msgId  = latest.id;
+            if (msgs.length > 0) {
+                // Cek semua pesan (bukan cuma latest) — kalau ada lebih dari 1
+                for (const msg of msgs) {
+                    const subject = msg.subject || '';
+                    const msgId   = msg.id;
 
-            // Fetch body lengkap
-            let body = '';
-            if (msgId) {
-                try { body = await himmelGetMessage(email, msgId, token, provider); } catch {}
+                    // Layer 1: coba dari subject dulu (cepat, tanpa fetch body)
+                    const otpFromSubject = extractOtp('', subject);
+                    if (otpFromSubject) return otpFromSubject;
+
+                    // Layer 2: fetch body lengkap
+                    let body = '';
+                    if (msgId) {
+                        try { body = await himmelGetMessage(email, msgId, token, provider); } catch {}
+                    }
+                    // Fallback ke intro kalau body kosong
+                    if (!body) body = msg.intro || msg.text || '';
+
+                    const otp = extractOtp(body, subject);
+                    if (otp) return otp;
+                }
             }
-            // Fallback ke intro di list
-            if (!body) body = latest.intro || '';
-
-            const otp = extractOtp(body);
-            if (otp) return otp;
         } catch {
-            // lanjut polling
+            // Network error — lanjut polling
         }
+
+        // Jangan sleep di iterasi terakhir
+        if (i < maxRetry - 1) await sleep(interval);
     }
     return null;
 }
@@ -263,12 +328,13 @@ module.exports = function(app) {
             // 3. Kirim OTP ke email temp
             await reqotp(email, tempSession);
 
-            // 4. Polling OTP dari Himmel inbox (max 75 detik)
+            // 4. Polling OTP dari Himmel inbox
+            //    8 detik delay awal, lalu tiap 5 detik, max 20x (~108 detik total)
             const otp = await pollOtp(email, hToken, provider);
             if (!otp) {
                 return res.status(500).json({
                     status : false,
-                    message: 'Gagal mendapatkan OTP dari Himmel Temp Mail.'
+                    message: 'Gagal mendapatkan OTP dari Himmel Temp Mail. Coba lagi.'
                 });
             }
 

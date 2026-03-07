@@ -4,18 +4,23 @@
  * ║  pixwith.ai | Multi Model | No Login     ║
  * ╚══════════════════════════════════════════╝
  *
- * Endpoint : GET /ai/pixwith
- * Query    :
- *   url    → URL gambar input
- *   prompt → deskripsi perubahan yang diinginkan
- *   model  → nama model (default: kling01image)
- *   apikey → API key
+ * FLOW (2 endpoint karena Vercel timeout):
  *
- * Models tersedia:
- *   nanobanana | kling01image | nanobanana2 | flux2dev | seedream45 | chatgpt15
+ *  STEP 1 — POST /ai/pixwith/create
+ *    Body: { url, prompt, model }
+ *    → Generate email, dapat OTP, upload gambar, buat job
+ *    → Return: { status, job_token, job_session }
  *
- * Contoh:
- *   /ai/pixwith?url=https://...jpg&prompt=ubah baju jadi warna ungu&model=nanobanana&apikey=
+ *  STEP 2 — GET /ai/pixwith/result?job_token=xxx&job_session=xxx
+ *    → Cek status job 1x
+ *    → Return: { status, done: true/false, image? }
+ *    → Client poll endpoint ini tiap 5 detik sampai done: true
+ *
+ * Contoh flow client:
+ *   1. POST /ai/pixwith/create → dapat job_token + job_session
+ *   2. GET  /ai/pixwith/result?job_token=xxx&job_session=xxx
+ *      → kalau done: false → tunggu 5 detik, ulang
+ *      → kalau done: true  → ambil image URL
  */
 
 const axios    = require('axios');
@@ -23,7 +28,6 @@ const FormData = require('form-data');
 const cheerio  = require('cheerio');
 const { requireApiKey } = require('../../lib/apiKeyAuth');
 
-// ── Himmel Temp Mail (source: Kazebayu) ───────────────────────────────────────
 const HIMMEL = 'https://himmel-temp-mail-v155.vercel.app';
 
 const BASE_HEADERS = {
@@ -46,13 +50,12 @@ const MODELS = {
     'chatgpt15'   : { model_id: '1-37', options: { prompt_optimization: true, num_outputs: 1, aspect_ratio: '1:1', quality: 'low' } }
 };
 
-// Kata 6 huruf kapital yang bukan OTP
 const OTP_BLACKLIST = new Set([
-    'PLEASE', 'THANKS', 'HELLO', 'ENTER', 'START', 'SHARE', 'NEVER',
-    'OTHERS', 'STAFF', 'EMAIL', 'CONTA', 'SUPPO', 'RIGHT', 'YOURS',
-    'USING', 'WELCO', 'VALID', 'FINAL', 'SIGNI', 'GENER', 'VERIF',
-    'EXPIR', 'REQUE', 'INITI', 'DISRE', 'KEEPE', 'WISHE', 'THRIL',
-    'BOARD', 'ABOVE', 'BELOW', 'PIXWI', 'SERVI', 'TEAMS', 'CODES'
+    'PLEASE','THANKS','HELLO','ENTER','START','SHARE','NEVER','OTHERS',
+    'STAFF','EMAIL','CONTA','SUPPO','RIGHT','YOURS','USING','WELCO',
+    'VALID','FINAL','SIGNI','GENER','VERIF','EXPIR','REQUE','INITI',
+    'DISRE','KEEPE','WISHE','THRIL','BOARD','ABOVE','BELOW','PIXWI',
+    'SERVI','TEAMS','CODES'
 ]);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -67,61 +70,43 @@ function sleep(ms) {
 }
 
 // ── OTP Extractor ─────────────────────────────────────────────────────────────
-/**
- * Format OTP pixwith: 6 huruf kapital, contoh: VWALQV
- * Subject: "[VWALQV]Verification Code for Your pixwith.ai Account"
- * Body   : "Verification code: VWALQV"
- *
- * html dari mail.tm bisa berupa array of strings — handle keduanya
- */
 function extractOtp(rawBody, subject = '') {
-    // ── Layer 1: Subject bracket [VWALQV] ─────────────────────────────────────
+    // Layer 1: Subject bracket [VWALQV]
     if (subject) {
         const m = subject.match(/\[([A-Z]{4,8})\]/);
         if (m && !OTP_BLACKLIST.has(m[1])) return m[1];
     }
 
-    // ── Layer 2: Normalize body (string atau array) ───────────────────────────
+    // Layer 2: Normalize body — html mail.tm bisa array
     let raw = '';
-    if (Array.isArray(rawBody)) {
-        raw = rawBody.join(' ');          // mail.tm html = array of strings
-    } else if (typeof rawBody === 'string') {
-        raw = rawBody;
-    }
-
+    if (Array.isArray(rawBody))         raw = rawBody.join(' ');
+    else if (typeof rawBody === 'string') raw = rawBody;
     if (!raw) return null;
 
-    // ── Layer 3: Parse HTML → plain text ─────────────────────────────────────
+    // Layer 3: HTML → plain text
     let text = raw;
     try {
         const $ = cheerio.load(raw);
         $('script, style, head').remove();
         text = $('body').text();
-    } catch {
-        text = raw;
-    }
+    } catch { text = raw; }
     text = text.replace(/\s+/g, ' ').trim();
 
-    // ── Layer 4: Multi-pattern ────────────────────────────────────────────────
+    // Layer 4: Multi-pattern
     const patterns = [
-        // Paling spesifik — exact pixwith format
         /[Vv]erification\s+code\s*:\s*([A-Z]{6})\b/,
         /[Vv]erification\s+code\s*:\s*([A-Z0-9]{4,8})\b/,
-        // Generic label
         /\bcode\s*[:\-]\s*([A-Z]{6})\b/i,
         /\bcode\s*[:\-]\s*([A-Z0-9]{4,8})\b/i,
         /\b(?:OTP|kode)\s*[:\-]\s*([A-Z0-9]{4,8})\b/i,
-        // 6 huruf kapital standalone — scan semua, filter blacklist
         /\b([A-Z]{6})\b/g,
-        // Fallback angka
         /\b([0-9]{6})\b/,
         /\b([0-9]{4,8})\b/,
     ];
 
     for (const p of patterns) {
         if (p.flags && p.flags.includes('g')) {
-            const all = [...text.matchAll(p)];
-            for (const m of all) {
+            for (const m of [...text.matchAll(p)]) {
                 if (!OTP_BLACKLIST.has(m[1])) return m[1];
             }
         } else {
@@ -132,23 +117,12 @@ function extractOtp(rawBody, subject = '') {
     return null;
 }
 
-// ── Himmel Temp Mail API ──────────────────────────────────────────────────────
-// Berdasarkan source code Kazebayu:
-//   POST /api/generate → { success, email, token (JWT mail.tm), provider, id, password }
-//   GET  /api/inbox/{email}?token=JWT&provider=mailtm
-//        → { success, messages: [{ id, from, subject, intro, created_at }] }
-//   GET  /api/message/{email}/{msg_id}?token=JWT&provider=mailtm
-//        → { success, message: { id, from, subject, text, html (array|string), created_at } }
-
+// ── Himmel Temp Mail ──────────────────────────────────────────────────────────
 async function himmelGenerate() {
     const res = await axios.post(`${HIMMEL}/api/generate`, {}, { timeout: 15000 });
     const d   = res.data;
     if (!d.success) throw new Error(`Himmel generate gagal: ${d.message}`);
-    return {
-        email   : d.email,
-        token   : d.token,       // JWT token untuk mail.tm
-        provider: d.provider || 'mailtm',
-    };
+    return { email: d.email, token: d.token, provider: d.provider || 'mailtm' };
 }
 
 async function himmelInbox(email, token, provider) {
@@ -156,9 +130,7 @@ async function himmelInbox(email, token, provider) {
         `${HIMMEL}/api/inbox/${encodeURIComponent(email)}`,
         { params: { token, provider }, timeout: 12000 }
     );
-    const d = res.data;
-    if (!d.success) return [];
-    return d.messages || [];
+    return res.data.success ? (res.data.messages || []) : [];
 }
 
 async function himmelGetMessage(email, msgId, token, provider) {
@@ -166,66 +138,46 @@ async function himmelGetMessage(email, msgId, token, provider) {
         `${HIMMEL}/api/message/${encodeURIComponent(email)}/${msgId}`,
         { params: { token, provider }, timeout: 12000 }
     );
-    const d = res.data;
-    if (!d.success) return { text: '', html: '' };
-    return d.message || {};
+    return res.data.success ? (res.data.message || {}) : {};
 }
 
-/**
- * Polling OTP dari Himmel inbox
- * - Delay 8 detik sebelum poll pertama (biar email sempet masuk)
- * - Poll tiap 5 detik, max 20x (~108 detik total)
- * - Cek semua pesan di inbox
- * - Coba extract OTP dari subject dulu (cepat), baru fetch full body
- */
-async function pollOtp(email, token, provider, maxRetry = 20, interval = 5000) {
-    await sleep(8000); // tunggu email masuk
+// ── Poll OTP — max ~50 detik (cocok untuk Vercel 60s limit) ──────────────────
+async function pollOtp(email, token, provider) {
+    await sleep(6000); // tunggu email masuk dulu
 
-    for (let i = 0; i < maxRetry; i++) {
+    for (let i = 0; i < 8; i++) {
         try {
             const msgs = await himmelInbox(email, token, provider);
-
             for (const msg of msgs) {
                 const subject = msg.subject || '';
-                const msgId   = msg.id;
 
-                // Coba dari subject dulu — paling cepat
+                // Coba subject dulu (cepat)
                 const fromSubject = extractOtp('', subject);
                 if (fromSubject) return fromSubject;
 
-                // Fetch full message body
-                if (msgId) {
+                // Fetch body lengkap
+                if (msg.id) {
                     try {
-                        const full = await himmelGetMessage(email, msgId, token, provider);
-                        // html bisa array (mail.tm) atau string
-                        const htmlRaw = Array.isArray(full.html)
-                            ? full.html.join(' ')
-                            : (full.html || '');
-                        const textRaw = full.text || '';
-
-                        // Coba html dulu (lebih lengkap), fallback ke text
-                        const otp = extractOtp(htmlRaw, subject)
-                                 || extractOtp(textRaw, subject)
-                                 || extractOtp(msg.intro || '', subject);
+                        const full    = await himmelGetMessage(email, msg.id, token, provider);
+                        const htmlRaw = Array.isArray(full.html) ? full.html.join(' ') : (full.html || '');
+                        const otp     = extractOtp(htmlRaw, subject)
+                                     || extractOtp(full.text || '', subject)
+                                     || extractOtp(msg.intro || '', subject);
                         if (otp) return otp;
                     } catch {
-                        // fallback ke intro dari list
                         const otp = extractOtp(msg.intro || '', subject);
                         if (otp) return otp;
                     }
                 }
             }
-        } catch {
-            // network error — lanjut poll
-        }
+        } catch { /* lanjut */ }
 
-        if (i < maxRetry - 1) await sleep(interval);
+        if (i < 7) await sleep(5000);
     }
     return null;
 }
 
 // ── Pixwith Functions ─────────────────────────────────────────────────────────
-
 async function reqotp(email, tempSession) {
     await axios.post(
         'https://api.pixwith.ai/api/user/send_email_code',
@@ -265,19 +217,13 @@ async function uploadToS3(uploadData, buffer, filename) {
     const form = new FormData();
     Object.entries(uploadData.fields).forEach(([k, v]) => form.append(k, v));
     form.append('file', buffer, { filename, contentType: 'image/jpeg' });
-    const res = await axios.post(uploadData.url, form, { headers: form.getHeaders() });
-    return res.status === 204;
+    await axios.post(uploadData.url, form, { headers: form.getHeaders() });
 }
 
 async function createItem(imageKey, prompt, token, modelConfig) {
     const res = await axios.post(
         'https://api.pixwith.ai/api/items/create',
-        {
-            images  : { image1: imageKey },
-            prompt,
-            options : modelConfig.options,
-            model_id: modelConfig.model_id
-        },
+        { images: { image1: imageKey }, prompt, options: modelConfig.options, model_id: modelConfig.model_id },
         { headers: { ...BASE_HEADERS, 'x-session-token': token } }
     );
     return res.data;
@@ -292,16 +238,28 @@ async function cekjob(token) {
     return res.data.data.items[0];
 }
 
-// ── Endpoint ──────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// ENDPOINT 1 — POST /ai/pixwith/create
+// Tugas: generate email → OTP → upload gambar → buat job
+// Return: { status, job_session } untuk di-polling di endpoint 2
+// ══════════════════════════════════════════════════════════════════════════════
+// ENDPOINT 2 — GET /ai/pixwith/result?job_session=xxx
+// Tugas: cek status job 1x
+// Return: { status, done, image? }
+// Client poll ini tiap 5 detik sampai done: true
+// ══════════════════════════════════════════════════════════════════════════════
+
 module.exports = function(app) {
-    app.get('/ai/pixwith', requireApiKey('ai'), async (req, res) => {
+
+    // ── ENDPOINT 1: Create job ────────────────────────────────────────────────
+    app.get('/ai/pixwith/create', requireApiKey('ai'), async (req, res) => {
         const { url, prompt, model = 'kling01image' } = req.query;
 
         if (!url || !prompt) {
             return res.status(400).json({
                 status : false,
                 message: "Parameter 'url' dan 'prompt' wajib diisi!",
-                contoh : '/ai/pixwith?url=https://...jpg&prompt=ubah baju jadi warna ungu&model=nanobanana&apikey=',
+                contoh : '/ai/pixwith/create?url=https://...jpg&prompt=ubah baju jadi warna ungu&model=nanobanana&apikey=',
                 models : Object.keys(MODELS)
             });
         }
@@ -309,61 +267,95 @@ module.exports = function(app) {
         const modelConfig = MODELS[model] || MODELS['kling01image'];
 
         try {
-            // 1. Download gambar input
+            // 1. Download gambar
             const imgRes   = await axios.get(url, { responseType: 'arraybuffer', timeout: 20000 });
             const buffer   = Buffer.from(imgRes.data);
             const filename = 'input.jpg';
 
-            // 2. Generate sesi + email temp dari Himmel
+            // 2. Generate email temp
             const tempSession = gensesi();
             const { email, token: hToken, provider } = await himmelGenerate();
 
-            // 3. Kirim OTP ke email temp
+            // 3. Kirim OTP
             await reqotp(email, tempSession);
 
-            // 4. Polling OTP (8s delay awal + 20x poll @ 5s = max ~108 detik)
+            // 4. Polling OTP (~50 detik max)
             const otp = await pollOtp(email, hToken, provider);
             if (!otp) {
-                return res.status(500).json({
-                    status : false,
-                    message: 'Gagal mendapatkan OTP. Coba lagi.'
-                });
+                return res.status(500).json({ status: false, message: 'Gagal dapat OTP. Coba lagi.' });
             }
 
             // 5. Verifikasi OTP → session token pixwith
             const sessionToken = await verifyOtp(email, otp, tempSession);
 
-            // 6. Upload gambar ke S3
+            // 6. Upload gambar
             const uploadData = await getpreurl(filename, sessionToken);
             await uploadToS3(uploadData, buffer, filename);
 
             // 7. Buat job
             await createItem(uploadData.fields.key, prompt, sessionToken, modelConfig);
 
-            // 8. Polling hasil (max ~5 menit)
-            let result;
-            let attempts = 0;
-            do {
-                if (attempts >= 60) throw new Error('Timeout: proses terlalu lama');
-                await sleep(5000);
-                result = await cekjob(sessionToken);
-                attempts++;
-            } while (!result || result.status !== 2);
-
+            // Return session token untuk di-poll di /result
             return res.json({
-                status : true,
-                job_id : result.uid,
-                model  : model,
-                prompt : result.prompt,
-                image  : result.result_urls.find(u => !u.is_input).hd
+                status      : true,
+                message     : 'Job berhasil dibuat. Poll /ai/pixwith/result?job_session=xxx',
+                job_session : sessionToken,
+                model       : model,
+                prompt      : prompt,
             });
 
         } catch (err) {
-            return res.status(500).json({
-                status : false,
-                message: 'Proses pixwith gagal.',
-                error  : err.message
-            });
+            return res.status(500).json({ status: false, message: 'Gagal buat job.', error: err.message });
         }
+    });
+
+    // ── ENDPOINT 2: Poll result ───────────────────────────────────────────────
+    app.get('/ai/pixwith/result', requireApiKey('ai'), async (req, res) => {
+        const { job_session } = req.query;
+
+        if (!job_session) {
+            return res.status(400).json({ status: false, message: "Parameter 'job_session' wajib diisi!" });
+        }
+
+        try {
+            const item = await cekjob(job_session);
+
+            if (!item) {
+                return res.json({ status: true, done: false, message: 'Job belum ada di history.' });
+            }
+
+            // status 2 = selesai, status 0/1 = masih proses, status 3 = gagal
+            if (item.status === 3) {
+                return res.status(500).json({ status: false, done: true, message: 'Job gagal di pixwith.' });
+            }
+
+            if (item.status !== 2) {
+                return res.json({ status: true, done: false, message: 'Masih proses...', job_status: item.status });
+            }
+
+            // Done!
+            const imageUrl = item.result_urls.find(u => !u.is_input);
+            return res.json({
+                status : true,
+                done   : true,
+                job_id : item.uid,
+                image  : imageUrl ? imageUrl.hd : null,
+                prompt : item.prompt,
+            });
+
+        } catch (err) {
+            return res.status(500).json({ status: false, message: 'Gagal cek result.', error: err.message });
+        }
+    });
+
+    // ── LEGACY: GET /ai/pixwith (backward compat, redirect ke docs) ───────────
+    app.get('/ai/pixwith', requireApiKey('ai'), (req, res) => {
+        return res.status(400).json({
+            status  : false,
+            message : 'Endpoint ini sekarang pakai 2 step karena timeout Vercel.',
+            step1   : 'GET /ai/pixwith/create?url=...&prompt=...&model=...&apikey=',
+            step2   : 'GET /ai/pixwith/result?job_session=xxx&apikey= (poll tiap 5 detik)',
+            models  : Object.keys(MODELS),
+        });
     });
 };

@@ -104,19 +104,29 @@ async function himmelGetMessage(email, msgId, token, provider = 'mailtm') {
 }
 
 /**
- * Ekstrak OTP dari body email (HTML atau plain text)
+ * Ekstrak OTP dari body/subject email
+ * Format pixwith: 6 huruf kapital, contoh: VWALQV
+ * Subject: [VWALQV]Verification Code for Your pixwith.ai Account
+ * Body   : Verification code: VWALQV
  */
-function extractOtp(raw) {
+function extractOtp(raw, subject = '') {
+    // 1. Coba dari subject dulu — format [XXXXXX]
+    if (subject) {
+        const mSub = subject.match(/\[([A-Z]{6})\]/);
+        if (mSub) return mSub[1];
+    }
+
+    // 2. Parse body
     const $ = cheerio.load(raw);
     $('script, style').remove();
     const text = $('body').text().replace(/\s+/g, ' ').trim();
 
     const patterns = [
-        /Verification\s+code[:\s]+([A-Z0-9]{4,8})/i,
-        /Your\s+(?:OTP|code|verification)[:\s]+([A-Z0-9]{4,8})/i,
-        /(?:OTP|kode)[:\s]+([A-Z0-9]{4,8})/i,
-        /\b([0-9]{6})\b/,   // 6-digit (paling umum)
-        /\b([0-9]{4})\b/,   // 4-digit fallback
+        /Verification\s+code[:\s]+([A-Z]{6})\b/i,   // "Verification code: VWALQV"
+        /\bcode[:\s]+([A-Z]{6})\b/i,                 // "code: VWALQV"
+        /\b([A-Z]{6})\b/,                            // 6 huruf kapital standalone
+        /\b([0-9]{6})\b/,                            // fallback 6 angka
+        /\b([0-9]{4})\b/,                            // fallback 4 angka
     ];
 
     for (const p of patterns) {

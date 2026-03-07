@@ -13,6 +13,9 @@
  *
  * Models tersedia:
  *   nanobanana | kling01image | nanobanana2 | flux2dev | seedream45 | chatgpt15
+ *
+ * Contoh:
+ *   /ai/pixwith?url=https://...jpg&prompt=ubah baju jadi warna ungu&model=nanobanana&apikey=
  */
 
 const axios    = require('axios');
@@ -21,7 +24,7 @@ const cheerio  = require('cheerio');
 const { requireApiKey } = require('../../lib/apiKeyAuth');
 
 // ── Himmel Temp Mail ──────────────────────────────────────────────────────────
-const HIMMEL = 'https://himmel-temp-mail-v155.vercel.app/api';
+const HIMMEL = 'https://himmel-temp-mail-v155.vercel.app';
 
 const BASE_HEADERS = {
     'User-Agent'        : 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36',
@@ -54,53 +57,50 @@ function sleep(ms) {
     return new Promise(r => setTimeout(r, ms));
 }
 
-// ── Himmel Temp Mail Functions ─────────────────────────────────────────────────
+// ── Himmel Temp Mail Functions ────────────────────────────────────────────────
 
 /**
- * Generate email baru dari Himmel
- * Response: { email, token } atau { address, token } atau { mail, id }
+ * POST /api/generate
+ * Response: { success, email, token, provider, id, password, message }
  */
 async function himmelGenerate() {
-    const res = await axios.get(`${HIMMEL}/generate`, { timeout: 15000 });
+    const res = await axios.post(`${HIMMEL}/api/generate`, {}, { timeout: 15000 });
     const d   = res.data;
-
-    const email = d.email   || d.address || d.mail  || d.addr || null;
-    const token = d.token   || d.id      || d.key   || email  || null;
-
-    if (!email) throw new Error(`Himmel generate gagal, response: ${JSON.stringify(d)}`);
-    return { email, token };
+    if (!d.success) throw new Error(`Himmel generate gagal: ${d.message}`);
+    return {
+        email   : d.email,
+        token   : d.token,
+        provider: d.provider || 'mailtm',
+    };
 }
 
 /**
- * Cek inbox dari Himmel
- * Response: array of messages ATAU { messages: [...] } ATAU { emails: [...] }
+ * GET /api/inbox/{email}?token=xxx&provider=xxx
+ * Response: { success, email, messages: [...], count, provider }
  */
-async function himmelInbox(token) {
-    const res  = await axios.get(`${HIMMEL}/inbox`, {
-        params : { token, email: token },
-        timeout: 10000
-    });
+async function himmelInbox(email, token, provider = 'mailtm') {
+    const res = await axios.get(
+        `${HIMMEL}/api/inbox/${encodeURIComponent(email)}`,
+        { params: { token, provider }, timeout: 10000 }
+    );
     const d = res.data;
-
-    if (Array.isArray(d))           return d;
-    if (Array.isArray(d.messages))  return d.messages;
-    if (Array.isArray(d.emails))    return d.emails;
-    if (Array.isArray(d.data))      return d.data;
-    if (Array.isArray(d.mail))      return d.mail;
-    return [];
+    if (!d.success) return [];
+    return d.messages || [];
 }
 
 /**
- * Fetch body pesan berdasarkan id
+ * GET /api/message/{email}/{message_id}?token=xxx&provider=xxx
+ * Response: { success, message: { id, from, to, subject, text, html, created_at } }
  */
-async function himmelGetMessage(msgId, token) {
-    const res = await axios.get(`${HIMMEL}/message/${msgId}`, {
-        params : { token, email: token },
-        timeout: 10000
-    });
+async function himmelGetMessage(email, msgId, token, provider = 'mailtm') {
+    const res = await axios.get(
+        `${HIMMEL}/api/message/${encodeURIComponent(email)}/${msgId}`,
+        { params: { token, provider }, timeout: 10000 }
+    );
     const d = res.data;
-
-    return d.body || d.text || d.html || d.content || d.message || '';
+    if (!d.success) return '';
+    const msg = d.message || {};
+    return msg.html || msg.text || '';
 }
 
 /**
@@ -111,67 +111,64 @@ function extractOtp(raw) {
     $('script, style').remove();
     const text = $('body').text().replace(/\s+/g, ' ').trim();
 
-    // Pattern umum OTP pixwith
     const patterns = [
         /Verification\s+code[:\s]+([A-Z0-9]{4,8})/i,
         /Your\s+(?:OTP|code|verification)[:\s]+([A-Z0-9]{4,8})/i,
         /(?:OTP|kode)[:\s]+([A-Z0-9]{4,8})/i,
-        /\b([0-9]{6})\b/,          // 6-digit angka (paling umum)
-        /\b([0-9]{4})\b/,          // 4-digit fallback
+        /\b([0-9]{6})\b/,   // 6-digit (paling umum)
+        /\b([0-9]{4})\b/,   // 4-digit fallback
     ];
 
-    for (const pattern of patterns) {
-        const match = text.match(pattern);
-        if (match) return match[1];
+    for (const p of patterns) {
+        const m = text.match(p);
+        if (m) return m[1];
     }
     return null;
 }
 
 /**
- * Polling OTP dari Himmel inbox
- * Maksimal `maxRetry` kali, interval `interval` ms
+ * Polling OTP dari Himmel inbox — max 75 detik (15x @ 5 detik)
  */
-async function pollOtp(token, maxRetry = 15, interval = 5000) {
+async function pollOtp(email, token, provider, maxRetry = 15, interval = 5000) {
     for (let i = 0; i < maxRetry; i++) {
         await sleep(interval);
         try {
-            const msgs = await himmelInbox(token);
+            const msgs = await himmelInbox(email, token, provider);
             if (!msgs.length) continue;
 
             const latest = msgs[0];
-            const msgId  = latest.id || latest._id || latest.uid || latest.messageId || null;
+            const msgId  = latest.id;
 
+            // Fetch body lengkap
             let body = '';
-            // Coba fetch detail dulu
             if (msgId) {
-                try { body = await himmelGetMessage(msgId, token); } catch {}
+                try { body = await himmelGetMessage(email, msgId, token, provider); } catch {}
             }
-            // Fallback ke field di list
-            if (!body) {
-                body = latest.body || latest.text || latest.html
-                    || latest.content || latest.intro || latest.snippet || '';
-            }
+            // Fallback ke intro di list
+            if (!body) body = latest.intro || '';
 
             const otp = extractOtp(body);
             if (otp) return otp;
-        } catch (e) {
+        } catch {
             // lanjut polling
         }
     }
     return null;
 }
 
-// ── Pixwith Functions ──────────────────────────────────────────────────────────
+// ── Pixwith Functions ─────────────────────────────────────────────────────────
 
 async function reqotp(email, tempSession) {
-    await axios.post('https://api.pixwith.ai/api/user/send_email_code',
+    await axios.post(
+        'https://api.pixwith.ai/api/user/send_email_code',
         { email },
         { headers: { ...BASE_HEADERS, 'x-session-token': tempSession } }
     );
 }
 
-async function verify(email, code, tempSession) {
-    const v = await axios.post('https://api.pixwith.ai/api/user/verify_email_code',
+async function verifyOtp(email, code, tempSession) {
+    const v = await axios.post(
+        'https://api.pixwith.ai/api/user/verify_email_code',
         { email, code },
         { headers: { ...BASE_HEADERS, 'x-session-token': tempSession } }
     );
@@ -179,7 +176,8 @@ async function verify(email, code, tempSession) {
         'https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=AIzaSyAoRsni0q79r831sDrUjUTynjAEG2ai-EY',
         { token: v.data.data.custom_token, returnSecureToken: true }
     );
-    const l = await axios.post('https://api.pixwith.ai/api/user/get_user',
+    const l = await axios.post(
+        'https://api.pixwith.ai/api/user/get_user',
         { token: ex.data.idToken, ref: '-1' },
         { headers: { ...BASE_HEADERS, 'x-session-token': tempSession } }
     );
@@ -187,7 +185,8 @@ async function verify(email, code, tempSession) {
 }
 
 async function getpreurl(filename, token) {
-    const res = await axios.post('https://api.pixwith.ai/api/chats/pre_url',
+    const res = await axios.post(
+        'https://api.pixwith.ai/api/chats/pre_url',
         { image_name: filename, content_type: 'image/jpeg' },
         { headers: { ...BASE_HEADERS, 'x-session-token': token } }
     );
@@ -203,7 +202,8 @@ async function uploadToS3(uploadData, buffer, filename) {
 }
 
 async function createItem(imageKey, prompt, token, modelConfig) {
-    const res = await axios.post('https://api.pixwith.ai/api/items/create',
+    const res = await axios.post(
+        'https://api.pixwith.ai/api/items/create',
         {
             images  : { image1: imageKey },
             prompt,
@@ -216,14 +216,15 @@ async function createItem(imageKey, prompt, token, modelConfig) {
 }
 
 async function cekjob(token) {
-    const res = await axios.post('https://api.pixwith.ai/api/items/history',
+    const res = await axios.post(
+        'https://api.pixwith.ai/api/items/history',
         { tool_type: '1', tag: '', page: 0, page_size: 12 },
         { headers: { ...BASE_HEADERS, 'x-session-token': token } }
     );
     return res.data.data.items[0];
 }
 
-// ── Endpoint ───────────────────────────────────────────────────────────────────
+// ── Endpoint ──────────────────────────────────────────────────────────────────
 module.exports = function(app) {
     app.get('/ai/pixwith', requireApiKey('ai'), async (req, res) => {
         const { url, prompt, model = 'kling01image' } = req.query;
@@ -245,15 +246,15 @@ module.exports = function(app) {
             const buffer   = Buffer.from(imgRes.data);
             const filename = 'input.jpg';
 
-            // 2. Generate sesi temp + email dari Himmel
-            const tempSession            = gensesi();
-            const { email, token: hToken } = await himmelGenerate();
+            // 2. Generate sesi + email temp dari Himmel
+            const tempSession = gensesi();
+            const { email, token: hToken, provider } = await himmelGenerate();
 
             // 3. Kirim OTP ke email temp
             await reqotp(email, tempSession);
 
-            // 4. Polling OTP dari Himmel (max 75 detik)
-            const otp = await pollOtp(hToken, 15, 5000);
+            // 4. Polling OTP dari Himmel inbox (max 75 detik)
+            const otp = await pollOtp(email, hToken, provider);
             if (!otp) {
                 return res.status(500).json({
                     status : false,
@@ -261,8 +262,8 @@ module.exports = function(app) {
                 });
             }
 
-            // 5. Verifikasi OTP → dapatkan session token pixwith
-            const sessionToken = await verify(email, otp, tempSession);
+            // 5. Verifikasi OTP → session token pixwith
+            const sessionToken = await verifyOtp(email, otp, tempSession);
 
             // 6. Upload gambar ke S3
             const uploadData = await getpreurl(filename, sessionToken);

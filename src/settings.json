@@ -170,6 +170,15 @@
           "path": "/random/hentai"
         },
         {
+          "name": "Hentai Cosplay",
+          "desc": "Random Hentai Cosplay Image",
+          "path": "/nsfw/hentaicosplay/detail?path=/image/slug"
+         },
+         { "name": "Rule 34 Video",
+           "desc": "Detail Video,tag and categories",
+           "path": "/nsfw/rule34video/detail?url=https://rule34video.com/videos/xxx/"
+         },
+        {
           "name": "Blue Archive",
           "desc": "Blue Archive random images",
           "path": "/random/ba"
@@ -177,7 +186,7 @@
       ]
     },
     {
-      "name": "Search Tools (検索ツール)",
+      "name": "Search (検索ツール)",
       "items": [
         {
           "name": "Komiku",
@@ -193,6 +202,14 @@
           "name": "YouTube",
           "desc": "Search YouTube videos",
           "path": "/search/youtube?q="
+        },
+        { "name": "Hentai Cosplay",
+          "desc": "Search Hentai Cosplay",
+          "path": "/nsfw/hentaicosplay/search?q=nahida&page=1"
+        },
+        { "name": "Rule 34 Video",
+          "desc": "Search Rule 34 Video",
+          "path": "/nsfw/rule34video/search?q=nahida&page=1"
         }
       ]
     },

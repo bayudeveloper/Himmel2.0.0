@@ -1,6 +1,6 @@
 {
   "name": "Himmel-Apii",
-  "version": "1.5.6",
+  "version": "2.0.0",
   "description": "Simple and Easy-to-Use API Documentation",
   "header": {
     "status": "Online!",
@@ -21,16 +21,12 @@
         {
           "key": "M0NPI",
           "label": "Master Key",
-          "access": [
-            "ai"
-          ]
+          "access": ["ai"]
         },
         {
           "key": "HIMMEL2026",
           "label": "FreeAcces",
-          "access": [
-            "ai"
-          ]
+          "access": ["ai"]
         }
       ]
     }
@@ -51,43 +47,28 @@
       "items": [
         {
           "name": "Face Swap",
-          "desc": "face swap 1 to 2",
+          "desc": "Face swap 1 to 2",
           "path": "/ai/faceswap?foto1=&foto2=&apikey="
         },
         {
-          "name": "Ai chat",
-          "desc": "Chat with ai",
+          "name": "AI Chat",
+          "desc": "Chat with AI",
           "path": "/ai/chat?q=&apikey="
         },
         {
-          "name": "Sora Ai",
-          "desc": "Text to video",
-          "path": "/ai/sora?prompt=&apikey="
-        },
-        {
-          "name": "Sora Ai Status",
-          "desc": "Job status",
-          "path": "/ai/sora/status/:jobId?apikey="
-        },
-        {
           "name": "HD Video",
-          "desc": "HD video with AI",
+          "desc": "HD video enhancement with AI",
           "path": "/ai/hdvideo?url=&apikey="
         },
         {
-          "name": "Note Gpt",
-          "desc": "Ai answered",
+          "name": "Note GPT",
+          "desc": "AI-powered note answering",
           "path": "/ai/notegpt?url=&prompt=&apikey="
         },
         {
           "name": "Leonardo & Ideogram",
-          "desc": "Text to Image",
+          "desc": "Text to Image generation",
           "path": "/ai/txt2img?prompt=&apikey="
-        },
-        {
-          "name": "Pixwith",
-          "desc": "nanobanana, kling01image, nanobanana2, flux2dev, seedream45, chatgpt15",
-          "path": "/ai/pixwith?url=&prompt=&model=&apikey="
         }
       ]
     },
@@ -101,13 +82,8 @@
         },
         {
           "name": "Sfile",
-          "desc": "Downloader File",
+          "desc": "Download file from Sfile",
           "path": "/downloader/sfile?url="
-        },
-        {
-          "name": "SaveTube",
-          "desc": "Download YouTube video/audio",
-          "path": "/downloader/savetube?url=&format="
         },
         {
           "name": "Terabox",
@@ -121,18 +97,13 @@
         },
         {
           "name": "TikTok MP4",
-          "desc": "Download TikTok video",
+          "desc": "Download TikTok video (no watermark)",
           "path": "/downloader/ttmp4?url="
         },
         {
-          "name": "YouTube MP3",
-          "desc": "Convert YouTube to MP3",
-          "path": "/downloader/ytmp3?url="
-        },
-        {
-          "name": "YouTube MP4",
-          "desc": "Download YouTube video",
-          "path": "/downloader/ytmp4?url="
+          "name": "Facebook",
+          "desc": "Download Facebook video",
+          "path": "/downloader/facebook?url="
         }
       ]
     },
@@ -146,12 +117,12 @@
         },
         {
           "name": "Tri Check",
-          "desc": "Check 3 Sim",
+          "desc": "Check Tri SIM card quota",
           "path": "/info/tricheck?nomor="
         },
         {
           "name": "Cek Kuota XL & Axis",
-          "desc": "Check XL/AXIS Sim",
+          "desc": "Check XL/AXIS SIM card quota",
           "path": "/info/cekxL?nomor="
         },
         {
@@ -170,15 +141,6 @@
           "path": "/random/hentai"
         },
         {
-          "name": "Hentai Cosplay",
-          "desc": "Random Hentai Cosplay Image",
-          "path": "/nsfw/hentaicosplay/detail?path=/image/slug"
-         },
-         { "name": "Rule 34 Video",
-           "desc": "Detail Video,tag and categories",
-           "path": "/nsfw/rule34video/detail?url=https://rule34video.com/videos/xxx/"
-         },
-        {
           "name": "Blue Archive",
           "desc": "Blue Archive random images",
           "path": "/random/ba"
@@ -186,7 +148,7 @@
       ]
     },
     {
-      "name": "Search (検索ツール)",
+      "name": "Search Tools (検索ツール)",
       "items": [
         {
           "name": "Komiku",
@@ -195,7 +157,7 @@
         },
         {
           "name": "Sfile",
-          "desc": "Search File",
+          "desc": "Search file on Sfile",
           "path": "/search/sfile?q="
         },
         {
@@ -203,13 +165,10 @@
           "desc": "Search YouTube videos",
           "path": "/search/youtube?q="
         },
-        { "name": "Hentai Cosplay",
-          "desc": "Search Hentai Cosplay",
-          "path": "/nsfw/hentaicosplay/search?q=nahida&page=1"
-        },
-        { "name": "Rule 34 Video",
-          "desc": "Search Rule 34 Video",
-          "path": "/nsfw/rule34video/search?q=nahida&page=1"
+        {
+          "name": "Pinterest",
+          "desc": "Search images on Pinterest",
+          "path": "/search/pinterest?q="
         }
       ]
     },
@@ -218,33 +177,48 @@
       "items": [
         {
           "name": "Brat Generator",
-          "desc": "Generate Brat-style text images",
+          "desc": "Generate Brat-style text image",
           "path": "/tools/brat?text="
         },
         {
           "name": "Brat Video Generator",
-          "desc": "Generate Brat-style text video",
-          "path": "/tools/bratvideo?text="
-        },
-        {
-          "name": "Tiktok Like",
-          "desc": "Free Tiktok Like",
-          "path": "/tools/freetiktoklike?url="
+          "desc": "Generate Brat-style animated GIF",
+          "path": "/tools/bratvideo?text=&dur="
         },
         {
           "name": "Upscale",
-          "desc": "make photo resolution better",
+          "desc": "Enhance photo resolution with AI",
           "path": "/tools/upscale?url="
         },
         {
-          "name": "Free Fire Tools",
-          "desc": "Free Fire utilities",
-          "path": "/tools/fftools?type=all"
+          "name": "QR Code Generator",
+          "desc": "Generate QR Code from text or URL",
+          "path": "/tools/qrcode?text="
+        }
+      ]
+    },
+    {
+      "name": "NSFW (成人向け)",
+      "items": [
+        {
+          "name": "Hentai Cosplay - Search",
+          "desc": "Search hentai cosplay images",
+          "path": "/nsfw/hentaicosplay/search?q=&page="
         },
         {
-          "name": "QR Code Generator",
-          "desc": "Generate QR Code",
-          "path": "/tools/qrcode?text="
+          "name": "Hentai Cosplay - Detail",
+          "desc": "Get all images from a cosplay post",
+          "path": "/nsfw/hentaicosplay/detail?path="
+        },
+        {
+          "name": "Rule34Video - Search",
+          "desc": "Search rule34 videos",
+          "path": "/nsfw/rule34video/search?q=&page="
+        },
+        {
+          "name": "Rule34Video - Detail",
+          "desc": "Get video source, tags, categories",
+          "path": "/nsfw/rule34video/detail?url="
         }
       ]
     }

@@ -168,7 +168,7 @@
         {
           "name": "Pinterest",
           "desc": "Search images on Pinterest",
-          "path": "/search/pinterest?q="
+          "path": "/search/pinterest?q=&count="
         }
       ]
     },

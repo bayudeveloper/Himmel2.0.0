@@ -15,27 +15,50 @@ const PINTEREST_COOKIE = [
 async function pinterest(query) {
     const url = `https://id.pinterest.com/search/pins/?q=${encodeURIComponent(query)}&rs=typed`;
 
-    const res = await fetch(url, {
-        headers: {
-            'User-Agent':                'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
-            'Accept':                    'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-            'Accept-Language':           'en-US,en;q=0.9',
-            'Accept-Encoding':           'gzip, deflate, br',
-            'Referer':                   'https://id.pinterest.com/',
-            'Cookie':                    PINTEREST_COOKIE,
-            'sec-ch-ua':                 '"Chromium";v="139", "Not A;Brand";v="99"',
-            'sec-ch-ua-mobile':          '?0',
-            'sec-ch-ua-platform':        '"Linux"',
-            'sec-fetch-dest':            'document',
-            'sec-fetch-mode':            'navigate',
-            'sec-fetch-site':            'none',
-            'Upgrade-Insecure-Requests': '1',
-            'Cache-Control':             'max-age=0',
-        },
-    });
+    console.log('[Pinterest] Fetching URL:', url);
 
-    if (!res.ok) throw new Error(`Pinterest HTTP ${res.status}`);
+    let res;
+    try {
+        res = await fetch(url, {
+            headers: {
+                'User-Agent':                'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
+                'Accept':                    'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                'Accept-Language':           'en-US,en;q=0.9',
+                'Accept-Encoding':           'gzip, deflate, br',
+                'Referer':                   'https://id.pinterest.com/',
+                'Cookie':                    PINTEREST_COOKIE,
+                'sec-ch-ua':                 '"Chromium";v="139", "Not A;Brand";v="99"',
+                'sec-ch-ua-mobile':          '?0',
+                'sec-ch-ua-platform':        '"Linux"',
+                'sec-fetch-dest':            'document',
+                'sec-fetch-mode':            'navigate',
+                'sec-fetch-site':            'none',
+                'Upgrade-Insecure-Requests': '1',
+                'Cache-Control':             'max-age=0',
+            },
+        });
+    } catch (fetchErr) {
+        console.error('[Pinterest] Network error saat fetch:', fetchErr);
+        throw fetchErr;
+    }
+
+    console.log('[Pinterest] HTTP Status:', res.status, res.statusText);
+    console.log('[Pinterest] Response URL (redirect?):', res.url);
+
+    if (!res.ok) {
+        const errBody = await res.text().catch(() => '(gagal baca body)');
+        console.error('[Pinterest] Response body error:\n', errBody.slice(0, 500));
+        throw new Error(`Pinterest HTTP ${res.status}`);
+    }
+
     const html = await res.text();
+    console.log('[Pinterest] HTML length:', html.length);
+    console.log('[Pinterest] Berisi "imageSrcSet":', html.includes('imageSrcSet'));
+    console.log('[Pinterest] Berisi "login":', html.toLowerCase().includes('login'));
+    console.log('[Pinterest] Berisi "csrftoken":', html.includes('csrftoken'));
+
+    // Tampilkan 500 karakter pertama HTML buat cek redirect/login
+    console.log('[Pinterest] HTML preview (500 char pertama):\n', html.slice(0, 500));
 
     if (!html.includes('imageSrcSet')) {
         throw new Error('Pinterest tidak mengembalikan gambar. Cookie mungkin expired — perbarui PINTEREST_COOKIE.');
@@ -64,6 +87,7 @@ async function pinterest(query) {
         }
     }
 
+    console.log('[Pinterest] Total gambar ditemukan:', images.length);
     return images;
 }
 
@@ -103,6 +127,8 @@ module.exports = function(app) {
             });
 
         } catch (err) {
+            console.error('[Pinterest] ERROR:', err.message);
+            console.error('[Pinterest] Stack:', err.stack);
             return res.status(500).json({ status: false, error: err.message });
         }
     });

@@ -104,6 +104,11 @@
           "name": "Facebook",
           "desc": "Download Facebook video",
           "path": "/downloader/facebook?url="
+        },
+       {
+          "name": "Pinterest",
+          "desc": "Download Pinterest Foto And Video",
+          "path": "/downloader/pinterest?url="
         }
       ]
     },
@@ -168,7 +173,7 @@
         {
           "name": "Pinterest",
           "desc": "Search images on Pinterest",
-          "path": "/search/pinterest?q=&count="
+          "path": "/search/pinterest?q="
         }
       ]
     },

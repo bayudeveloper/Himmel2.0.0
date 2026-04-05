@@ -1,55 +1,55 @@
 const fetch = require('node-fetch');
 
-// ── Pinterest API function (dari BaseSearchResource) ─────────────────────────
+// ── Scrape Pinterest search via HTML — ambil imageSrcSet dari <link rel=preload> ──
 async function pinterest(query) {
-    const baseUrl = 'https://www.pinterest.com/resource/BaseSearchResource/get/';
+    const url = `https://id.pinterest.com/search/pins/?q=${encodeURIComponent(query)}&rs=typed`;
 
-    const queryParams = {
-        source_url: '/search/pins/?q=' + encodeURIComponent(query),
-        data: JSON.stringify({
-            options: {
-                isPrefetch: false,
-                query,
-                scope: 'pins',
-                no_fetch_context_on_resource: false
-            },
-            context: {}
-        }),
-        _: Date.now()
-    };
-
-    const url = new URL(baseUrl);
-    Object.entries(queryParams).forEach(([k, v]) => url.searchParams.set(k, v));
-
-    const response = await fetch(url.toString(), {
+    const res = await fetch(url, {
         headers: {
             'User-Agent':      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
-            'Accept':          'application/json, text/javascript, */*, q=0.01',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Referer':         'https://www.pinterest.com/',
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-APP-VERSION':   'b9e6a4e',
-            'X-Pinterest-AppState': 'active',
-        }
+            'Accept':          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Referer':         'https://id.pinterest.com/',
+            'sec-ch-ua':       '"Chromium";v="139", "Not;A=Brand";v="99"',
+            'sec-ch-ua-mobile':'?0',
+            'sec-fetch-dest':  'document',
+            'sec-fetch-mode':  'navigate',
+            'sec-fetch-site':  'same-origin',
+            'Cache-Control':   'no-cache',
+        },
     });
 
-    if (!response.ok) throw new Error(`Pinterest HTTP ${response.status}`);
+    if (!res.ok) throw new Error(`Pinterest HTTP ${res.status}`);
+    const html = await res.text();
 
-    const json    = await response.json();
-    const results = json?.resource_response?.data?.results ?? [];
+    // Ambil semua imageSrcSet dari <link rel="preload" as="image">
+    const images = [];
+    const re = /imageSrcSet="([^"]+)"/g;
+    let m;
 
-    return results.map(item => ({
-        id:         item.id         ?? '',
-        pin:        'https://www.pinterest.com/pin/' + (item.id ?? ''),
-        link:       item.link       ?? '',
-        grid_title: item.grid_title ?? '',
-        images_url: item.images?.['736x']?.url ?? '',
-        created_at: item.created_at
-            ? new Date(item.created_at).toLocaleDateString('id-ID', {
-                day: 'numeric', month: 'long', year: 'numeric'
-              })
-            : '',
-    }));
+    while ((m = re.exec(html)) !== null) {
+        const srcset = m[1];
+        // Parse tiap resolusi: "URL 1x, URL 2x, URL 3x, URL 4x"
+        const parts = {};
+        for (const entry of srcset.split(',')) {
+            const [imgUrl, res] = entry.trim().split(/\s+/);
+            if (imgUrl && res) parts[res] = imgUrl;
+        }
+        // Prioritas: originals > 736x > 474x > 236x
+        const best = parts['4x'] || parts['3x'] || parts['2x'] || parts['1x'];
+        if (best) {
+            images.push({
+                '236x':      parts['1x'] || null,
+                '474x':      parts['2x'] || null,
+                '736x':      parts['3x'] || null,
+                'originals': parts['4x'] || null,
+                'url':       best,
+            });
+        }
+    }
+
+    return images;
 }
 
 // ── Route ─────────────────────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ module.exports = function(app) {
 
     /**
      * GET /search/pinterest?q=anime&count=25
-     * Search Pinterest images — return array dengan images_url, pin url, dll
+     * Response: array of images dengan 4 ukuran + url (best quality)
      */
     app.get('/search/pinterest', async (req, res) => {
         const { q, count = 25 } = req.query;

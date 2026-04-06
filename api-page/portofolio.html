@@ -210,29 +210,25 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
             </div>
         </div>
         <div class="hero-right fade-in d2">
-            <div class="code-window">
+            <div class="code-window" id="ai-playground">
                 <div class="code-window-bar">
                     <div class="code-dots">
                         <div class="code-dot r"></div>
                         <div class="code-dot y"></div>
                         <div class="code-dot g"></div>
                     </div>
-                    <span class="code-window-title">quick_start.js</span>
+                    <span class="code-window-title">ai_playground.js</span>
                 </div>
-<pre class="code-window-pre"><span class="c-dim">// Himmel API — Quick Start</span>
-<span class="c-purple">const</span> res = <span class="c-purple">await</span> <span class="c-blue">fetch</span>(
-  <span class="c-green">`https://himmel-api.vercel.app`</span>
-  + <span class="c-green">`/ai/chat?q=Hello&amp;apikey=KEY`</span>
-);
-
-<span class="c-purple">const</span> data = <span class="c-purple">await</span> res.<span class="c-blue">json</span>();
-<span class="c-blue">console</span>.<span class="c-blue">log</span>(data.<span class="c-amber">result</span>);
-
-<span class="c-dim">// Response</span>
-{
-  <span class="c-amber">creator</span>: <span class="c-green">"Bayu Official"</span>,
-  <span class="c-amber">result</span>:  <span class="c-green">"Hello! How can I help?"</span>
-}<span class="code-cursor"></span></pre>
+                <div style="padding:18px 20px;">
+                    <div style="font-family:'Space Mono',monospace;font-size:.64rem;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">// Coba AI Chat — langsung dari sini</div>
+                    <div style="display:flex;gap:8px;align-items:stretch;">
+                        <input id="playground-input" type="text" placeholder="Ketik pertanyaan..." style="flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:3px;padding:10px 14px;color:var(--accent);font-family:'Space Mono',monospace;font-size:.72rem;outline:none;transition:border .15s;" onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--border2)'" onkeydown="if(event.key==='Enter')playgroundSend()">
+                        <button onclick="playgroundSend()" style="background:var(--amber);color:#0a0a0a;border:none;border-radius:3px;padding:10px 16px;font-family:'Space Mono',monospace;font-size:.72rem;font-weight:700;cursor:pointer;transition:opacity .2s;white-space:nowrap;" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">Send →</button>
+                    </div>
+                    <div id="playground-output" style="margin-top:14px;font-family:'Space Mono',monospace;font-size:.72rem;line-height:1.75;min-height:110px;">
+                        <span style="color:var(--dim);">// Response akan muncul di sini...</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -323,42 +319,18 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
                 </div>
                 <pre class="code-pre" id="pre-python">import requests
 
-BASE_URL = "https://himmel-api.vercel.app"
-API_KEY  = "YOUR_API_KEY"
-
-# Contoh 1 — AI Chat
-def ai_chat(pertanyaan):
-    res = requests.get(
-        f"{BASE_URL}/ai/chat",
-        params={"q": pertanyaan, "apikey": API_KEY}
-    )
-    return res.json()
-
-# Contoh 2 — Download YouTube MP3
-def ytmp3(url):
-    res = requests.get(
-        f"{BASE_URL}/downloader/ytmp3",
-        params={"url": url}
-    )
-    return res.json()
-
-# Contoh 3 — Text to Image
-def text_to_image(prompt):
-    res = requests.get(
-        f"{BASE_URL}/ai/txt2img",
-        params={"prompt": prompt, "apikey": API_KEY}
-    )
-    return res.json()
-
-# Jalankan
-result = ai_chat("Halo, apa kabar?")
-print(result["result"])</pre>
+res = requests.get(
+    "https://restxapi-himmel-v2-0-0.vercel.app/ai/chat",
+    params={"q": "Halo!", "apikey": "YOUR_API_KEY"}
+)
+data = res.json()
+print(data["result"])</pre>
             </div>
             <div class="code-block-wrap">
                 <div class="code-block-head"><span class="code-block-lang">Response</span></div>
                 <pre class="code-pre response">{
   "creator": "Bayu Official",
-  "result": "Halo! Kabar baik, terima kasih sudah bertanya."
+  "result": "Halo! Ada yang bisa saya bantu?"
 }</pre>
             </div>
         </div>
@@ -370,51 +342,19 @@ print(result["result"])</pre>
                     <span class="code-block-lang">JavaScript / Node.js</span>
                     <button class="code-copy-btn" id="btn-js" onclick="copyCode('pre-js','btn-js')">copy</button>
                 </div>
-                <pre class="code-pre" id="pre-js">const BASE_URL = "https://himmel-api.vercel.app";
-const API_KEY  = "YOUR_API_KEY";
+                <pre class="code-pre" id="pre-js">const url = new URL("https://restxapi-himmel-v2-0-0.vercel.app/ai/chat");
+url.searchParams.set("q", "Halo!");
+url.searchParams.set("apikey", "YOUR_API_KEY");
 
-// Contoh 1 — AI Chat
-async function aiChat(q) {
-    const url = new URL(`${BASE_URL}/ai/chat`);
-    url.searchParams.set("q", q);
-    url.searchParams.set("apikey", API_KEY);
-
-    const res  = await fetch(url);
-    const data = await res.json();
-    return data;
-}
-
-// Contoh 2 — YouTube MP3
-async function ytmp3(videoUrl) {
-    const url = new URL(`${BASE_URL}/downloader/ytmp3`);
-    url.searchParams.set("url", videoUrl);
-
-    const res  = await fetch(url);
-    const data = await res.json();
-    return data;
-}
-
-// Contoh 3 — Text to Image
-async function textToImage(prompt) {
-    const url = new URL(`${BASE_URL}/ai/txt2img`);
-    url.searchParams.set("prompt", prompt);
-    url.searchParams.set("apikey", API_KEY);
-
-    const res  = await fetch(url);
-    const data = await res.json();
-    return data;
-}
-
-// Jalankan
-aiChat("Siapakah kamu?").then(data =>
-    console.log(data.result)
-);</pre>
+const res  = await fetch(url);
+const data = await res.json();
+console.log(data.result);</pre>
             </div>
             <div class="code-block-wrap">
                 <div class="code-block-head"><span class="code-block-lang">Response</span></div>
                 <pre class="code-pre response">{
   "creator": "Bayu Official",
-  "result": "Saya adalah Himmel AI, siap membantu kamu."
+  "result": "Halo! Ada yang bisa saya bantu?"
 }</pre>
             </div>
         </div>
@@ -428,51 +368,25 @@ aiChat("Siapakah kamu?").then(data =>
                 </div>
                 <pre class="code-pre" id="pre-php">&lt;?php
 
-define('BASE_URL', 'https://himmel-api.vercel.app');
-define('API_KEY',  'YOUR_API_KEY');
+$url = "https://restxapi-himmel-v2-0-0.vercel.app/ai/chat?"
+     . http_build_query(["q" =&gt; "Halo!", "apikey" =&gt; "YOUR_API_KEY"]);
 
-// Helper — GET request dengan curl
-function himmelGet($path, $params = []) {
-    $url = BASE_URL . $path;
-    if (!empty($params)) {
-        $url .= '?' . http_build_query($params);
-    }
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 30,
-        CURLOPT_SSL_VERIFYPEER => false,
-    ]);
-    $body = curl_exec($ch);
-    curl_close($ch);
-    return json_decode($body, true);
-}
-
-// Contoh 1 — AI Chat
-$chat = himmelGet('/ai/chat', [
-    'q'      =&gt; 'Halo!',
-    'apikey' =&gt; API_KEY,
+$ch = curl_init($url);
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_TIMEOUT        =&gt; 30,
+    CURLOPT_SSL_VERIFYPEER =&gt; false,
 ]);
-echo $chat['result'];
+$data = json_decode(curl_exec($ch), true);
+curl_close($ch);
 
-// Contoh 2 — YouTube MP3
-$mp3 = himmelGet('/downloader/ytmp3', [
-    'url' =&gt; 'https://youtu.be/dQw4w9WgXcQ',
-]);
-echo $mp3['url'];
-
-// Contoh 3 — Text to Image
-$img = himmelGet('/ai/txt2img', [
-    'prompt' =&gt; 'sunset di tepi pantai',
-    'apikey' =&gt; API_KEY,
-]);
-echo $img['url'];</pre>
+echo $data["result"];</pre>
             </div>
             <div class="code-block-wrap">
                 <div class="code-block-head"><span class="code-block-lang">Response</span></div>
                 <pre class="code-pre response">{
   "creator": "Bayu Official",
-  "url": "https://cdn.example.com/generated-image.jpg"
+  "result": "Halo! Ada yang bisa saya bantu?"
 }</pre>
             </div>
         </div>
@@ -525,3 +439,39 @@ function copyCode(preId, btnId) {
 </script>
 </body>
 </html>
+<script>
+async function playgroundSend() {
+    var input  = document.getElementById('playground-input');
+    var output = document.getElementById('playground-output');
+    var q      = input.value.trim();
+    if (!q) return;
+
+    output.innerHTML = '<span style="color:var(--amber);">// Loading...</span>';
+    input.disabled = true;
+
+    try {
+        var url = new URL('/ai/playground', window.location.origin);
+        url.searchParams.set('q', q);
+        var res  = await fetch(url);
+        var data = await res.json();
+
+        var creator = data.creator || 'Himmel API';
+        var result  = data.result  || data.message || JSON.stringify(data);
+
+        output.innerHTML =
+            '<span style="color:var(--dim);">{</span>\n' +
+            '  <span style="color:var(--amber);">"creator"</span><span style="color:var(--dim);">:</span> <span style="color:#3d9e6b;">"' + escHtml(creator) + '"</span>,\n' +
+            '  <span style="color:var(--amber);">"result"</span><span style="color:var(--dim);">:</span>  <span style="color:#3d9e6b;">"' + escHtml(result) + '"</span>\n' +
+            '<span style="color:var(--dim);">}</span>';
+    } catch (e) {
+        output.innerHTML = '<span style="color:#b85c5c;">// Error: ' + escHtml(e.message) + '</span>';
+    }
+
+    input.disabled = false;
+    input.focus();
+}
+
+function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>

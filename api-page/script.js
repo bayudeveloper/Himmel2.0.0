@@ -269,109 +269,49 @@ window.addEventListener('scroll', function() {
    STATS
    ===================================================== */
 
-// Uptime — from /health endpoint (server's actual uptime)
-var _sec = 0, _tickOn = false;
-function fmtTime(s) {
-    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
-    if (h > 0) return h + 'h ' + String(m).padStart(2, '0') + 'm ' + String(ss).padStart(2, '0') + 's';
-    if (m > 0) return m + 'm ' + String(ss).padStart(2, '0') + 's';
-    return ss + 's';
+// Uptime — dihitung dari tanggal launch: 26 Februari 2026
+function calcUptime() {
+    var LAUNCH = new Date('2026-02-26T00:00:00+07:00').getTime();
+    var now    = Date.now();
+    var diff   = Math.max(0, now - LAUNCH);
+
+    var totalSec  = Math.floor(diff / 1000);
+    var days      = Math.floor(totalSec / 86400);
+    var hours     = Math.floor((totalSec % 86400) / 3600);
+    var mins      = Math.floor((totalSec % 3600) / 60);
+    var secs      = totalSec % 60;
+
+    if (days > 0) {
+        return days + 'd ' +
+               String(hours).padStart(2,'0') + 'h ' +
+               String(mins).padStart(2,'0') + 'm';
+    }
+    if (hours > 0) return hours + 'h ' + String(mins).padStart(2,'0') + 'm ' + String(secs).padStart(2,'0') + 's';
+    return mins + 'm ' + String(secs).padStart(2,'0') + 's';
 }
-function startTicker() {
-    if (_tickOn) return; _tickOn = true;
+
+function startUptimeTicker() {
+    var el = document.getElementById('valUptime');
+    if (!el) return;
+    el.textContent = calcUptime();
     setInterval(function() {
-        _sec++;
-        var el = document.getElementById('valUptime');
-        if (el) el.textContent = fmtTime(_sec);
+        if (el) el.textContent = calcUptime();
     }, 1000);
 }
-async function loadUptime() {
+
+async function loadRam() {
     try {
         var d = await fetch('/health').then(function(r) { return r.json(); });
-        if (d.uptime) {
-            var m = d.uptime.match(/(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s)?/);
-            _sec = (parseInt(m && m[1] || 0) * 3600) + (parseInt(m && m[2] || 0) * 60) + parseInt(m && m[3] || 0);
-        }
         var ramEl = document.getElementById('valRam');
         if (ramEl && d.memory) ramEl.textContent = d.memory;
-        var uptEl = document.getElementById('valUptime');
-        if (uptEl) uptEl.textContent = fmtTime(_sec);
-        startTicker();
     } catch(e) {
-        var el = document.getElementById('valUptime');
-        if (el) el.textContent = 'Unreachable';
+        var ramEl = document.getElementById('valRam');
+        if (ramEl) ramEl.textContent = 'N/A';
     }
-}
-
-// Monthly visitors — server-side, unique per IP per month
-async function loadMonthlyUsers() {
-    var el = document.getElementById('valUsers');
-    if (!el) return;
-    try {
-        await fetch('/api/visitors/ping', { method: 'POST' });
-        var d = await fetch('/api/visitors').then(function(r) { return r.json(); });
-        el.textContent = (d.count || 0).toLocaleString('id-ID') + ' visits';
-    } catch(e) {
-        el.textContent = 'N/A';
-    }
-}
-
-// Device — always visitor's browser/device
-function detectDevice() {
-    var el = document.getElementById('valDevice');
-    if (!el) return;
-    var ua = navigator.userAgent;
-    var iphone = ua.match(/iPhone OS ([\d_]+)/);
-    if (iphone) { el.textContent = 'iPhone (iOS ' + iphone[1].replace(/_/g, '.') + ')'; return; }
-    if (/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) { el.textContent = 'iPad'; return; }
-    var android = ua.match(/\(Linux; Android [\d.]+;?\s*([^)]+)\)/);
-    if (android) {
-        var d = android[1].replace(/Build\/[^\s;)]+/g, '').replace(/;.*$/, '').trim();
-        el.textContent = (d.length > 25 ? d.slice(0, 23) + '…' : d) || 'Android Device';
-        return;
-    }
-    if (/Windows NT/.test(ua)) { var v = ua.match(/Windows NT ([\d.]+)/); var vmap = {'10.0':'10/11','6.3':'8.1','6.2':'8','6.1':'7'}; el.textContent = 'Windows ' + (vmap[v && v[1]] || ''); return; }
-    if (/Macintosh/.test(ua)) { el.textContent = 'Mac / MacBook'; return; }
-    if (/Linux/.test(ua))     { el.textContent = 'Linux PC'; return; }
-    el.textContent = 'Unknown Device';
-}
-
-// Battery
-async function loadBattery() {
-    var el = document.getElementById('valBattery');
-    if (!el) return;
-    if (!('getBattery' in navigator)) { el.textContent = 'Not supported'; return; }
-    try {
-        var bat = await navigator.getBattery();
-        function render() {
-            var pct = Math.round(bat.level * 100);
-            var cls = pct > 50 ? 'green' : pct > 20 ? 'yellow' : 'red';
-            el.innerHTML = '<div class="battery-bar-wrap"><span class="stat-pct">' + pct + '%' +
-                (bat.charging ? ' <span class="charging-badge">⚡</span>' : '') + '</span></div>' +
-                '<div class="battery-bar"><div class="battery-fill ' + cls + '" style="width:' + pct + '%"></div></div>';
-        }
-        render();
-        bat.addEventListener('levelchange', render);
-        bat.addEventListener('chargingchange', render);
-    } catch(e) { el.textContent = 'Unavailable'; }
-}
-
-// IP — always visitor's IP from external API
-async function loadIP() {
-    var el = document.getElementById('valIP');
-    if (!el) return;
-    var apis = [
-        function() { return fetch('https://api.ipify.org?format=json').then(function(r){return r.json();}).then(function(d){return d.ip;}); },
-        function() { return fetch('https://api.my-ip.io/v2/ip.json').then(function(r){return r.json();}).then(function(d){return d.ip;}); },
-        function() { return fetch('https://ipapi.co/json/').then(function(r){return r.json();}).then(function(d){return d.ip;}); }
-    ];
-    for (var i = 0; i < apis.length; i++) {
-        try { var ip = await apis[i](); if (ip) { el.textContent = ip; return; } } catch(e) {}
-    }
-    el.textContent = 'Unable to detect';
 }
 
 (function initStats() {
-    loadUptime(); loadMonthlyUsers(); detectDevice(); loadBattery(); loadIP();
-    setInterval(loadUptime, 30000);
+    startUptimeTicker();
+    loadRam();
+    setInterval(loadRam, 30000);
 })();

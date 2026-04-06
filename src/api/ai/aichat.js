@@ -55,7 +55,7 @@ async function pollinationsChat(q) {
 
     const text = typeof res.data === 'string' ? res.data.trim() : res.data?.choices?.[0]?.message?.content;
     if (!text || text.includes('IMPORTANT NOTICE') || text.includes('deprecated')) throw new Error('Bad response');
-    return { text, model: 'Pollinations AI' };
+    return { text, model: 'Chat GPT' };
 }
 
 // ─── Provider 3: Groq (free tier, no key needed via proxy) ───────────────────

@@ -1,7 +1,25 @@
 /**
  * [ Text to Image ]
  * Provider 1 (Primary)  : live3d.io
- * Provider 2 (Fallback) : createimg.com
+ * Provider 2 (Fallback) : Pollinations AI (instant, no polling)
+ *
+ * FLOW (2 endpoint — solusi Vercel timeout):
+ *
+ *  STEP 1 — GET /ai/txt2img/create?prompt=&ratio=&apikey=
+ *    → Submit job ke live3d, return task_id + fp
+ *    → Return: { status, task_id, fp, source }
+ *
+ *  STEP 2 — GET /ai/txt2img/result?task_id=&fp=&apikey=
+ *    → Cek status 1x saja (client yang polling tiap 4–5 detik)
+ *    → Return: { status, done: true/false, url? }
+ *
+ *  Kalau live3d /create gagal → langsung fallback Pollinations (instant, 1 request)
+ *
+ * Contoh flow client:
+ *   1. GET /ai/txt2img/create?prompt=xxx → dapat { task_id, fp } atau { url } langsung
+ *   2. Kalau ada task_id → poll GET /ai/txt2img/result?task_id=xxx&fp=xxx tiap 4 detik
+ *      → done: false → ulangi
+ *      → done: true  → ambil url
  */
 
 const { requireApiKey } = require('../../lib/apiKeyAuth');
@@ -17,6 +35,7 @@ MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCwlO+boC6cwRo3UfXVBadaYwcX
 AFVMEip7E6RMK6tKAAif7xzZrXnP1GZ5Rijtqdgwh+YmzTo39cuBCsZqK9oEoeQ3
 r/myG9S+9cR5huTuFQIDAQAB
 -----END PUBLIC KEY-----`;
+
 const APP_ID = 'aifaceswap';
 const U_ID   = '1H5tRtzsBkqXcaJ';
 
@@ -26,6 +45,7 @@ function genRandStr(len) {
 }
 
 function aesenc(data, key) {
+    if (!CryptoJS) throw new Error('crypto-js not installed');
     const k = CryptoJS.enc.Utf8.parse(key);
     return CryptoJS.AES.encrypt(data, k, {
         iv: k,
@@ -51,157 +71,190 @@ function genCryptoHeaders(type, fp = null) {
         ? `${APP_ID}:${r}:${s}`
         : `${APP_ID}:${U_ID}:${n}:${r}:${s}`;
     return {
-        fp: fingerPrint,
-        fp1: aesenc(`${APP_ID}:${fingerPrint}`, i),
+        fp:        fingerPrint,
+        fp1:       aesenc(`${APP_ID}:${fingerPrint}`, i),
         'x-guide': s,
-        'x-sign': aesenc(signStr, i),
-        'x-code': Date.now().toString()
+        'x-sign':  aesenc(signStr, i),
+        'x-code':  Date.now().toString()
     };
 }
 
 const BASE_HDR = {
-    'User-Agent':     'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Mobile Safari/537.36',
-    'Accept':         'application/json, text/plain, */*',
-    'origin':         'https://live3d.io',
-    'referer':        'https://live3d.io/',
-    'theme-version':  '83EmcUoQTUv50LhNx0VrdcK8rcGexcP35FcZDcpgWsAXEyO4xqL5shCY6sFIWB2Q',
+    'User-Agent':    'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Mobile Safari/537.36',
+    'Accept':        'application/json, text/plain, */*',
+    'origin':        'https://live3d.io',
+    'referer':       'https://live3d.io/',
+    'theme-version': '83EmcUoQTUv50LhNx0VrdcK8rcGexcP35FcZDcpgWsAXEyO4xqL5shCY6sFIWB2Q',
 };
 
-async function live3dGenerate(prompt, aspectRatio = '1:1') {
+// Submit job ke live3d — return { task_id, fp }
+async function live3dCreate(prompt, aspectRatio = '1:1') {
+    if (!CryptoJS) throw new Error('crypto-js not installed');
     const ch = genCryptoHeaders('create');
-    const createRes = await fetch('https://app.live3d.io/aitools/of/create', {
+    const res = await fetch('https://app.live3d.io/aitools/of/create', {
         method: 'POST',
         headers: { ...BASE_HDR, 'Content-Type': 'application/json', ...ch },
         body: JSON.stringify({
-            fn_name: 'demo-image-editor',
-            call_type: 3,
-            input: { model: 'nano_banana_pro', source_images: [], prompt, aspect_radio: aspectRatio, request_from: 9 },
-            data: '',
-            request_from: 9,
-            origin_from: '8f3f0c7387123ae0'
+            fn_name:       'demo-image-editor',
+            call_type:     3,
+            input:         { model: 'nano_banana_pro', source_images: [], prompt, aspect_radio: aspectRatio, request_from: 9 },
+            data:          '',
+            request_from:  9,
+            origin_from:   '8f3f0c7387123ae0'
         }),
+        signal: AbortSignal.timeout(8000)
     });
-    const createData = await createRes.json();
-    if (!createData?.data?.task_id) throw new Error('live3d create failed');
-
-    const taskId = createData.data.task_id;
-    const fp     = ch.fp;
-
-    let result, attempts = 0;
-    do {
-        await new Promise(r => setTimeout(r, 4000));
-        if (++attempts > 30) throw new Error('live3d timeout');
-        const ch2 = genCryptoHeaders('check', fp);
-        const statusRes = await fetch('https://app.live3d.io/aitools/of/check-status', {
-            method: 'POST',
-            headers: { ...BASE_HDR, 'Content-Type': 'application/json', ...ch2 },
-            body: JSON.stringify({ task_id: taskId, fn_name: 'demo-image-editor', call_type: 3, request_from: 9, origin_from: '8f3f0c7387123ae0' }),
-        });
-        const statusData = await statusRes.json();
-        result = statusData.data;
-    } while (result?.status !== 2);
-
-    return 'https://temp.live3d.io/' + result.result_image;
+    const data = await res.json();
+    if (!data?.data?.task_id) throw new Error('live3d create failed: ' + JSON.stringify(data));
+    return { task_id: data.data.task_id, fp: ch.fp };
 }
 
-// ── createimg.com helpers ────────────────────────────────────────────────────
-const API_BASE = 'https://www.createimg.com?api=v1';
-const UA       = 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36';
-const ORIGIN   = 'https://www.createimg.com';
-
-async function bypassTurnstile() {
-    const res = await fetch(
-        'https://api.nekolabs.web.id/tools/bypass/cf-turnstile?url=https://www.createimg.com/&siteKey=0x4AAAAAABggkaHPwa2n_WBx',
-        { signal: AbortSignal.timeout(15000) }
-    );
-    const d = await res.json();
-    if (!d.success) throw new Error('Turnstile bypass failed');
-    return d.result;
-}
-
-function genSec() {
-    return Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-}
-
-async function postAPI(params) {
-    const r = await fetch(API_BASE, {
+// Cek status job live3d — 1x check saja
+async function live3dCheck(task_id, fp) {
+    if (!CryptoJS) throw new Error('crypto-js not installed');
+    const ch2 = genCryptoHeaders('check', fp);
+    const res = await fetch('https://app.live3d.io/aitools/of/check-status', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            'User-Agent':   UA,
-            'Origin':       ORIGIN,
-            'Referer':      `${ORIGIN}/`
-        },
-        body: params.toString(),
-        signal: AbortSignal.timeout(20000)
+        headers: { ...BASE_HDR, 'Content-Type': 'application/json', ...ch2 },
+        body: JSON.stringify({
+            task_id,
+            fn_name:      'demo-image-editor',
+            call_type:    3,
+            request_from: 9,
+            origin_from:  '8f3f0c7387123ae0'
+        }),
+        signal: AbortSignal.timeout(8000)
     });
-    return r.json();
-}
+    const data = await res.json();
+    const result = data?.data;
+    if (!result) throw new Error('live3d check: response kosong');
 
-async function createimgGenerate(prompt, negative = '') {
-    const cfToken  = await bypassTurnstile();
-    const security = genSec();
-
-    const init = await postAPI(new URLSearchParams({ token: cfToken, security, action: 'turnstile', module: 'create' }));
-    if (!init.status) throw new Error('Init failed');
-
-    const create = await postAPI(new URLSearchParams({
-        token: cfToken, security, action: 'create',
-        server: init.server, prompt,
-        negative: negative || '',
-        seed: Math.floor(Math.random() * 1e9),
-        size: 1024
-    }));
-    if (!create.status) throw new Error('Create failed');
-
-    const { id, queue } = create;
-    for (let i = 0; i < 60; i++) {
-        await new Promise(r => setTimeout(r, 3000));
-        const q = await postAPI(new URLSearchParams({ id, queue, module: 'create', action: 'queue', server: init.server, token: cfToken, security }));
-        if ((q.pending || 0) === 0) break;
-        if (i === 59) throw new Error('Timeout waiting for queue');
+    if (result.status === 2 && result.result_image) {
+        return { done: true, url: 'https://temp.live3d.io/' + result.result_image };
     }
-
-    const hist = await postAPI(new URLSearchParams({ id, action: 'history', server: init.server, module: 'create', token: cfToken, security }));
-    if (!hist.status) throw new Error('History failed');
-
-    const out = await postAPI(new URLSearchParams({ id: hist.file, action: 'output', server: init.server, module: 'create', token: cfToken, security, page: 'home', lang: 'en' }));
-    if (!out.status) throw new Error('Output failed');
-
-    return out.data;
+    if (result.status === 3) {
+        throw new Error('live3d: job failed di server');
+    }
+    return { done: false };
 }
 
-// ── Route ────────────────────────────────────────────────────────────────────
+// ── Pollinations AI — instant, tidak perlu polling ───────────────────────────
+function pollinationsUrl(prompt, ratio = '1:1') {
+    const sizes = {
+        '1:1':  { w: 1024, h: 1024 },
+        '16:9': { w: 1280, h: 720  },
+        '9:16': { w: 720,  h: 1280 },
+        '4:3':  { w: 1024, h: 768  },
+        '3:4':  { w: 768,  h: 1024 },
+    };
+    const { w, h } = sizes[ratio] || sizes['1:1'];
+    const seed = Math.floor(Math.random() * 9999999);
+    const enc  = encodeURIComponent(prompt);
+    return `https://image.pollinations.ai/prompt/${enc}?width=${w}&height=${h}&seed=${seed}&nologo=true&enhance=true`;
+}
+
+async function pollinationsGenerate(prompt, ratio = '1:1') {
+    const url = pollinationsUrl(prompt, ratio);
+    // Verifikasi URL accessible (HEAD request, max 8 detik)
+    const res = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(8000) });
+    if (!res.ok) throw new Error('Pollinations tidak merespons: ' + res.status);
+    return url;
+}
+
+// ── Route ─────────────────────────────────────────────────────────────────────
 module.exports = (app) => {
-    app.get('/ai/txt2img', requireApiKey, async (req, res) => {
-        const { prompt, negative = '', ratio = '1:1' } = req.query;
+
+    // STEP 1 — Submit job
+    app.get('/ai/txt2img/create', requireApiKey('ai'), async (req, res) => {
+        const { prompt, ratio = '1:1', negative = '' } = req.query;
 
         if (!prompt || !prompt.trim()) {
-            return res.status(400).json({ status: false, error: 'Parameter prompt wajib diisi.' });
-        }
-
-        if (!CryptoJS) {
-            return res.status(500).json({ status: false, error: 'Dependency crypto-js belum terinstall. Jalankan: npm install crypto-js' });
+            return res.status(400).json({ status: false, error: 'Parameter ?prompt= wajib diisi.' });
         }
 
         const validRatios = ['1:1', '16:9', '9:16', '4:3', '3:4'];
         const aspectRatio = validRatios.includes(ratio) ? ratio : '1:1';
+        const p = prompt.trim();
 
-        // Provider 1: live3d.io
-        try {
-            const imageUrl = await live3dGenerate(prompt.trim(), aspectRatio);
-            return res.json({ status: true, source: 'live3d', prompt: prompt.trim(), ratio: aspectRatio, url: imageUrl });
-        } catch (err) {
-            console.warn('[txt2img] live3d gagal, fallback ke createimg:', err.message);
+        // Coba live3d dulu (async submit, cepat)
+        if (CryptoJS) {
+            try {
+                const { task_id, fp } = await live3dCreate(p, aspectRatio);
+                return res.json({
+                    status:  true,
+                    source:  'live3d',
+                    task_id,
+                    fp,
+                    prompt:  p,
+                    ratio:   aspectRatio,
+                    message: 'Job submitted. Poll /ai/txt2img/result?task_id=xxx&fp=xxx tiap 4 detik.'
+                });
+            } catch (err) {
+                console.warn('[txt2img] live3d create gagal, fallback pollinations:', err.message);
+            }
         }
 
-        // Provider 2 (Fallback): createimg.com
+        // Fallback: Pollinations — langsung return URL
         try {
-            const imageUrl = await createimgGenerate(prompt.trim(), negative);
-            return res.json({ status: true, source: 'createimg', prompt: prompt.trim(), url: imageUrl });
+            const url = await pollinationsGenerate(p, aspectRatio);
+            return res.json({
+                status: true,
+                source: 'pollinations',
+                done:   true,
+                prompt: p,
+                ratio:  aspectRatio,
+                url,
+            });
         } catch (err) {
-            console.warn('[txt2img] createimg juga gagal:', err.message);
-            return res.status(500).json({ status: false, error: 'Semua provider sedang tidak tersedia. Coba lagi nanti.' });
+            console.warn('[txt2img] pollinations juga gagal:', err.message);
+            // Terakhir: return URL pollinations tanpa verifikasi (tetap bisa dipakai)
+            const url = pollinationsUrl(p, aspectRatio);
+            return res.json({
+                status: true,
+                source: 'pollinations',
+                done:   true,
+                prompt: p,
+                ratio:  aspectRatio,
+                url,
+            });
         }
+    });
+
+    // STEP 2 — Cek hasil (client polling ini tiap 4–5 detik)
+    app.get('/ai/txt2img/result', requireApiKey('ai'), async (req, res) => {
+        const { task_id, fp } = req.query;
+
+        if (!task_id || !fp) {
+            return res.status(400).json({ status: false, error: 'Parameter ?task_id= dan ?fp= wajib diisi.' });
+        }
+
+        try {
+            const result = await live3dCheck(task_id, fp);
+            return res.json({ status: true, ...result });
+        } catch (err) {
+            return res.json({ status: false, error: err.message });
+        }
+    });
+
+    // Backward compat — /ai/txt2img langsung (Pollinations only, instant)
+    app.get('/ai/txt2img', requireApiKey('ai'), async (req, res) => {
+        const { prompt, ratio = '1:1' } = req.query;
+
+        if (!prompt || !prompt.trim()) {
+            return res.status(400).json({ status: false, error: 'Parameter ?prompt= wajib diisi.' });
+        }
+
+        const validRatios = ['1:1', '16:9', '9:16', '4:3', '3:4'];
+        const aspectRatio = validRatios.includes(ratio) ? ratio : '1:1';
+        const p = prompt.trim();
+
+        const url = pollinationsUrl(p, aspectRatio);
+        return res.json({
+            status: true,
+            source: 'pollinations',
+            prompt: p,
+            ratio:  aspectRatio,
+            url,
+        });
     });
 };

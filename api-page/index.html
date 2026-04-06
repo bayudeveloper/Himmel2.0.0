@@ -1,22 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="icon" href="https://files.catbox.moe/rbfc5x.jpg" type="image/jpeg">
     <title id="page">Himmel API</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"/>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div id="loadingScreen">
         <div class="loader-container">
-            <div class="gif-frame"><div class="gif-wrapper">
-                <img src="https://files.catbox.moe/tbk8kv.gif" alt="Loading" class="loader-gif">
-            </div></div>
+            <div class="gif-frame">
+                <div class="gif-wrapper">
+                    <img src="https://files.catbox.moe/tbk8kv.gif" alt="" class="loader-gif">
+                </div>
+            </div>
             <div class="loader-text">
-                <span class="tp" style="--i:1">l</span><span class="tp" style="--i:2">o</span><span class="tp" style="--i:3">a</span><span class="tp" style="--i:4">d</span><span class="tp" style="--i:5">i</span><span class="tp" style="--i:6">n</span><span class="tp" style="--i:7">g</span><span class="dp" style="--i:8">.</span><span class="dp" style="--i:9">.</span><span class="dp" style="--i:10">.</span>
+                <span class="tp" style="--i:1">l</span><span class="tp" style="--i:2">o</span><span class="tp" style="--i:3">a</span><span class="tp" style="--i:4">d</span><span class="tp" style="--i:5">i</span><span class="tp" style="--i:6">n</span><span class="tp" style="--i:7">g</span>
             </div>
             <div class="progress-bar-wrap"><div class="progress-bar-fill" id="loadingProgressBar"></div></div>
         </div>
@@ -24,18 +26,16 @@
 
     <nav class="navbar">
         <div class="nav-inner">
-            <a class="navbar-brand" id="navBrand">
+            <a class="navbar-brand" id="navBrand" href="#">
                 <div class="brand-logo"><img src="https://files.catbox.moe/rbfc5x.jpg" alt="Himmel"></div>
                 <span id="header" class="brand-text"></span>
-                <div id="versionHeader" class="version-badge"></div>
             </a>
             <div class="nav-actions">
                 <div class="api-counter" id="apiCallCounter">
-                    <span>⚡</span>
                     <span id="counterVal">0</span>
-                    <span class="counter-lbl">calls</span>
+                    <span class="counter-lbl" style="font-family:'Space Mono',monospace;font-size:.68rem;color:var(--dim)">calls</span>
                 </div>
-                <a href="/admin.html" class="nav-icon-btn">⚙️</a>
+                <a href="/admin.html" class="nav-icon-btn" title="Admin">adm</a>
             </div>
         </div>
     </nav>
@@ -48,17 +48,18 @@
             <div id="version" class="version-badge"></div>
         </div>
 
-        <div class="stats-grid">
-            <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-info"><div class="stat-lbl">Uptime <span class="live-dot"></span></div><div class="stat-val" id="valUptime">—</div></div></div>
-            <div class="stat-card"><div class="stat-icon">💾</div><div class="stat-info"><div class="stat-lbl">RAM <span class="live-dot"></span></div><div class="stat-val" id="valRam">—</div></div></div>
+        <div class="uptime-bar">
+            <div class="uptime-dot"></div>
+            <span class="uptime-label">Uptime</span>
+            <span class="uptime-val" id="valUptime">— hari</span>
         </div>
 
         <p id="description" class="page-desc"></p>
         <div id="apiLinks" class="api-links"></div>
 
         <div class="search-wrap">
-            <span class="search-icon">⌕</span>
-            <input type="text" id="searchInput" class="search-input" placeholder="Search API…">
+            <span class="search-icon">/</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="Cari endpoint...">
         </div>
 
         <div id="apiContent"></div>
@@ -72,12 +73,12 @@
                         <h5 class="modal-title" id="apiResponseModalLabel"></h5>
                         <p class="modal-sub mb-0" id="apiResponseModalDesc"></p>
                     </div>
-                    <button class="modal-x" data-bs-dismiss="modal">×</button>
+                    <button class="modal-x" data-bs-dismiss="modal">x</button>
                 </div>
                 <div class="modal-body">
                     <pre id="apiEndpoint" class="code-block"></pre>
                     <div id="apiQueryInputContainer"></div>
-                    <div id="apiResponseLoading" class="d-none d-flex justify-content-center align-items-center" style="height:100px">
+                    <div id="apiResponseLoading" class="d-none d-flex justify-content-center align-items-center" style="height:80px">
                         <div class="h-spinner"></div>
                     </div>
                     <pre id="apiResponseContent" class="d-none mt-2 code-block resp-block"></pre>

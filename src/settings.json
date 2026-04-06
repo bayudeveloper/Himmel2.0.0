@@ -69,6 +69,11 @@
           "name": "Text To Image",
           "desc": "Create a photo with a prompt.",
           "path": "/ai/txt2img?prompt=&apikey="
+        },
+        {
+         "name": "Image to Image",
+         "desc": "Edit gambar dengan AI menggunakan prompt",
+         "path": "/ai/img2img?url=&prompt=&apikey="
         }
       ]
     },

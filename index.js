@@ -55,7 +55,7 @@ app.use(cors({ origin: '*' }));
 app.use(fileUpload({ limits: { fileSize: 50 * 1024 * 1024 }, useTempFiles: false }));
 
 // ── Static files ─────────────────────────────────────────────────────────────
-app.use('/', express.static(path.join(__dirname, 'api-page')));
+app.use('/', express.static(path.join(__dirname, 'api-page'), { index: false }));
 app.use('/src', express.static(path.join(__dirname, 'src')));
 
 // ── Temp directories (kompatibel semua hosting) ──────────────────────────────

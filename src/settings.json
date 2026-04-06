@@ -109,6 +109,11 @@
           "name": "Pinterest",
           "desc": "Download Pinterest Foto And Video",
           "path": "/downloader/pinterest?url="
+        },
+        {
+        "name": "Youtube",
+          "desc": "Youtube Downloader MP4/MP3",
+          "path": "/downloader/ytdown?url="
         }
       ]
     },

@@ -64,11 +64,6 @@
           "name": "Note GPT",
           "desc": "AI-powered note answering",
           "path": "/ai/notegpt?url=&prompt=&apikey="
-        },
-        {
-          "name": "Leonardo & Ideogram",
-          "desc": "Text to Image generation",
-          "path": "/ai/txt2img?prompt=&apikey="
         }
       ]
     },

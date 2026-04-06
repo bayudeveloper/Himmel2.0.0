@@ -109,6 +109,11 @@
         "name": "Youtube",
           "desc": "Youtube Downloader MP4/MP3",
           "path": "/downloader/ytdown?url="
+        },
+        {
+        "name": "Twitter/X",
+          "desc": "Twitter/X Downloader",
+          "path": "/downloader/twitter?url="
         }
       ]
     },

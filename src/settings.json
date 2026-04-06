@@ -64,6 +64,11 @@
           "name": "Note GPT",
           "desc": "AI-powered note answering",
           "path": "/ai/notegpt?url=&prompt=&apikey="
+        },
+       {
+          "name": "Text To Image",
+          "desc": "Create a photo with a prompt.",
+          "path": "/ai/txt2img?prompt=&apikey="
         }
       ]
     },

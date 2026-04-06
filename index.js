@@ -166,6 +166,8 @@ console.log(chalk.cyan(`🌐 Hosting: ${hostingName}\n`));
 
 // ── Home page ─────────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
+    const portoPath = path.join(__dirname, 'api-page', 'portofolio.html');
+    if (fs.existsSync(portoPath)) return res.sendFile(portoPath);
     const indexPath = path.join(__dirname, 'api-page', 'index.html');
     if (fs.existsSync(indexPath)) return res.sendFile(indexPath);
     res.json({ name: 'Himmel API', version: '1.5.6', status: 'online', routes: totalRoutes, hosting: hostingName });

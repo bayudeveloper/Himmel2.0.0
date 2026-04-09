@@ -124,6 +124,11 @@
         "name": "Twitter/X",
           "desc": "Twitter/X Downloader",
           "path": "/downloader/twitter?url="
+        },
+        {
+        "name": "Layar Kaca 21",
+          "desc": "Layar Kaca 21 Downloader",
+          "path": "/api/lk21/download?url="
         }
       ]
     },
@@ -189,6 +194,11 @@
           "name": "Pinterest",
           "desc": "Search images on Pinterest",
           "path": "/search/pinterest?q="
+        }
+{
+        "name": "Layar Kaca 21",
+          "desc": "Layar Kaca 21 Search",
+          "path": "/api/lk21/search?query=&page="
         }
       ]
     },

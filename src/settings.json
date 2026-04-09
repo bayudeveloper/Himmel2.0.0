@@ -65,15 +65,15 @@
           "desc": "AI-powered note answering",
           "path": "/ai/notegpt?url=&prompt=&apikey="
         },
-       {
+        {
           "name": "Text To Image",
           "desc": "Create a photo with a prompt.",
           "path": "/ai/txt2img?prompt=&apikey="
         },
         {
-         "name": "Image to Image",
-         "desc": "Edit gambar dengan AI menggunakan prompt",
-         "path": "/ai/img2img?url=&prompt=&apikey="
+          "name": "Image to Image",
+          "desc": "Edit gambar dengan AI menggunakan prompt",
+          "path": "/ai/img2img?url=&prompt=&apikey="
         }
       ]
     },
@@ -110,25 +110,25 @@
           "desc": "Download Facebook video",
           "path": "/downloader/facebook?url="
         },
-       {
+        {
           "name": "Pinterest",
           "desc": "Download Pinterest Foto And Video",
           "path": "/downloader/pinterest?url="
         },
         {
-        "name": "Youtube",
+          "name": "Youtube",
           "desc": "Youtube Downloader MP4/MP3",
           "path": "/downloader/ytdown?url="
         },
         {
-        "name": "Twitter/X",
+          "name": "Twitter/X",
           "desc": "Twitter/X Downloader",
           "path": "/downloader/twitter?url="
         },
         {
-        "name": "Layar Kaca 21",
+          "name": "Layar Kaca 21",
           "desc": "Layar Kaca 21 Downloader",
-          "path": "/api/lk21/download?url="
+          "path": "/lk21/download?url="
         }
       ]
     },
@@ -194,11 +194,16 @@
           "name": "Pinterest",
           "desc": "Search images on Pinterest",
           "path": "/search/pinterest?q="
-        }
-{
-        "name": "Layar Kaca 21",
-          "desc": "Layar Kaca 21 Search",
-          "path": "/api/lk21/search?query=&page="
+        },
+        {
+          "name": "Layar Kaca 21",
+          "desc": "Layar Kaca 21 Search + Detail Film",
+          "path": "/lk21/search?query=&page="
+        },
+        {
+          "name": "Anime Search",
+          "desc": "Search anime + detail dari Animekuindo",
+          "path": "/anime/search?query="
         }
       ]
     },
@@ -249,6 +254,21 @@
           "name": "Rule34Video - Detail",
           "desc": "Get video source, tags, categories",
           "path": "/nsfw/rule34video/detail?url="
+        }
+      ]
+    },
+    {
+      "name": "Anime (アニメ)",
+      "items": [
+        {
+          "name": "Anime Search",
+          "desc": "Search anime + detail dari Animekuindo",
+          "path": "/anime/search?query="
+        },
+        {
+          "name": "Anime Episode Stream",
+          "desc": "Get stream URL dari episode anime",
+          "path": "/anime/episode?url="
         }
       ]
     }

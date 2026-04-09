@@ -229,6 +229,11 @@
           "name": "QR Code Generator",
           "desc": "Generate QR Code from text or URL",
           "path": "/tools/qrcode?text="
+        },
+        {
+         "name": "Welcome V1",
+         "desc": "Generate welcome card dengan  foto profil",
+         "path": "/tools/welcomev1?urlfoto=&subject="
         }
       ]
     },

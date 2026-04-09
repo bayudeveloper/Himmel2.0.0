@@ -80,63 +80,118 @@ async function searchAnime(keyword) {
 }
 
 async function getEpisodeStream(episodeUrl) {
-    const { data } = await req(episodeUrl);
-    const $ = cheerio.load(data);
+    const { data: html } = await req(episodeUrl);
+    const $              = cheerio.load(html);
 
-    // Stream URL — coba berbagai selector
-    const streamUrl =
-        $('#pembed iframe').attr('src') ||
-        $('#player iframe').attr('src') ||
-        $('.playerbox iframe').attr('src') ||
-        $('div[id*="player"] iframe').attr('src') ||
-        $('div[id*="embed"] iframe').attr('src') ||
-        $('iframe[src*="animekuindo"]').attr('src') ||
-        $('iframe[src*="embed"]').attr('src') ||
-        $('iframe').first().attr('src') ||
-        null;
-
-    // Mirror streams — coba berbagai selector
-    const mirrorStreams = [];
-    const mirrorSelectors = [
-        '.mirrorstream ul li a',
-        '.serverstream ul li a',
-        '.server ul li a',
-        '.mirror ul li a',
-        'ul.mirror li a',
-        'ul.server li a',
-        '[class*="mirror"] li a',
-        '[class*="server"] li a',
-    ];
-
-    for (const sel of mirrorSelectors) {
-        $(sel).each((_, el) => {
-            const provider    = $(el).text().trim();
-            const dataContent = $(el).attr('data-content') ||
-                                $(el).attr('data-src')     ||
-                                $(el).attr('data-url')     ||
-                                $(el).attr('href')         || null;
-            if (provider && dataContent) mirrorStreams.push({ provider, dataContent });
-        });
-        if (mirrorStreams.length) break;
-    }
-
-    // Fallback: cari dari script tag
-    const iframeSrcs = [];
+    // ── 1. Cari nonce & post ID dari inline script ────────────────────────
+    let nonce  = '';
+    let postId = '';
     $('script').each((_, el) => {
         const src = $(el).html() || '';
-        const matches = src.match(/(?:src|url)\s*[:=]\s*['"]([^'"]*(?:embed|player|stream)[^'"]*)['"]/gi) || [];
-        matches.forEach(m => {
-            const u = m.match(/['"]([^'"]+)['"]/)?.[1];
-            if (u) iframeSrcs.push(u);
-        });
+        const nonceMatch  = src.match(/["']nonce["']\s*:\s*["']([a-f0-9]+)["']/);
+        const postIdMatch = src.match(/["']post_id["']\s*:\s*["']?(\d+)["']?/);
+        const nonceMatch2 = src.match(/var\s+nonce\s*=\s*["']([a-f0-9]+)["']/);
+        const nonceMatch3 = src.match(/nonce\s*:\s*["']([a-f0-9]+)["']/);
+        if (nonceMatch)  nonce  = nonceMatch[1];
+        if (nonceMatch2) nonce  = nonceMatch2[1];
+        if (nonceMatch3) nonce  = nonceMatch3[1];
+        if (postIdMatch) postId = postIdMatch[1];
     });
 
+    // Fallback: post ID dari URL atau meta
+    if (!postId) {
+        const bodyClass = $('body').attr('class') || '';
+        const pidMatch  = bodyClass.match(/postid-(\d+)/);
+        if (pidMatch) postId = pidMatch[1];
+    }
+
+    // ── 2. Hit wp-admin/admin-ajax.php untuk stream ───────────────────────
+    const ajaxUrl   = episodeUrl.replace(/\/[^/]+\/?$/, '') + '/../wp-admin/admin-ajax.php';
+    const baseHost  = new URL(episodeUrl).origin;
+    const ajaxBase  = `${baseHost}/wp-admin/admin-ajax.php`;
+
+    const streamResults = [];
+
+    if (postId) {
+        // Action umum tema AnimeStream/Sora
+        const actions = [
+            { action: 'player_ajax',     data: { action: 'player_ajax',     post_id: postId, nonce } },
+            { action: 'get_stream',      data: { action: 'get_stream',      post_id: postId, nonce } },
+            { action: 'load_player',     data: { action: 'load_player',     id: postId, nonce } },
+            { action: 'sora_player',     data: { action: 'sora_player',     post_id: postId, nonce } },
+            { action: 'airi_ajax',       data: { action: 'airi_ajax',       post_id: postId, nonce } },
+        ];
+
+        for (const { action, data } of actions) {
+            try {
+                const form   = new URLSearchParams(data).toString();
+                const result = await axios.post(ajaxBase, form, {
+                    headers: {
+                        ...HDRS,
+                        'content-type': 'application/x-www-form-urlencoded',
+                        'referer':      episodeUrl,
+                        'x-requested-with': 'XMLHttpRequest',
+                    },
+                    timeout: 10000,
+                    family: 4,
+                });
+                if (result.data && result.data !== '0' && result.data !== '-1') {
+                    streamResults.push({ action, data: result.data });
+                }
+            } catch (_) {}
+        }
+    }
+
+    // ── 3. Parse iframe dari hasil ajax ───────────────────────────────────
+    let streamUrl = null;
+    const mirrorStreams = [];
+
+    for (const { data: ajaxHtml } of streamResults) {
+        if (typeof ajaxHtml === 'string') {
+            const $a = cheerio.load(ajaxHtml);
+            const src = $a('iframe').first().attr('src');
+            if (src && !src.includes('loading.gif')) { streamUrl = src; break; }
+        } else if (typeof ajaxHtml === 'object') {
+            // Response JSON langsung
+            const src = ajaxHtml?.url || ajaxHtml?.embed || ajaxHtml?.src || ajaxHtml?.stream;
+            if (src) { streamUrl = src; break; }
+            if (Array.isArray(ajaxHtml?.servers)) {
+                ajaxHtml.servers.forEach(s => mirrorStreams.push({ provider: s.name || s.server, url: s.url || s.src }));
+            }
+        }
+    }
+
+    // ── 4. Fallback: cek data-content di elemen yang ada di HTML awal ─────
+    if (!streamUrl) {
+        const selectors = [
+            '[data-content]', '[data-src]', '[data-url]',
+            '[data-video]',   '[data-embed]',
+        ];
+        for (const sel of selectors) {
+            $(sel).each((_, el) => {
+                const val = $(el).attr('data-content') ||
+                            $(el).attr('data-src')     ||
+                            $(el).attr('data-url')     ||
+                            $(el).attr('data-video')   ||
+                            $(el).attr('data-embed');
+                if (val && !val.includes('loading.gif')) {
+                    const label = $(el).text().trim() || $(el).attr('class') || 'Server';
+                    mirrorStreams.push({ provider: label, dataContent: val });
+                }
+            });
+            if (mirrorStreams.length) break;
+        }
+    }
+
     return {
+        postId: postId || null,
+        nonce:  nonce  || null,
         streamUrl,
         mirrorStreams,
-        ...(iframeSrcs.length ? { iframeSrcs } : {}),
+        ajaxResults: streamResults.length ? streamResults : undefined,
     };
 }
+
 
 async function getAnimeDetail(url, includeStream = false) {
     const { data } = await req(url);

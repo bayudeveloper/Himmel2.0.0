@@ -83,16 +83,59 @@ async function getEpisodeStream(episodeUrl) {
     const { data } = await req(episodeUrl);
     const $ = cheerio.load(data);
 
-    const streamUrl     = $('#pembed iframe').attr('src') || null;
-    const mirrorStreams = [];
+    // Stream URL — coba berbagai selector
+    const streamUrl =
+        $('#pembed iframe').attr('src') ||
+        $('#player iframe').attr('src') ||
+        $('.playerbox iframe').attr('src') ||
+        $('div[id*="player"] iframe').attr('src') ||
+        $('div[id*="embed"] iframe').attr('src') ||
+        $('iframe[src*="animekuindo"]').attr('src') ||
+        $('iframe[src*="embed"]').attr('src') ||
+        $('iframe').first().attr('src') ||
+        null;
 
-    $('.mirrorstream ul li a').each((_, el) => {
-        const provider    = $(el).text().trim();
-        const dataContent = $(el).attr('data-content');
-        if (provider && dataContent) mirrorStreams.push({ provider, dataContent });
+    // Mirror streams — coba berbagai selector
+    const mirrorStreams = [];
+    const mirrorSelectors = [
+        '.mirrorstream ul li a',
+        '.serverstream ul li a',
+        '.server ul li a',
+        '.mirror ul li a',
+        'ul.mirror li a',
+        'ul.server li a',
+        '[class*="mirror"] li a',
+        '[class*="server"] li a',
+    ];
+
+    for (const sel of mirrorSelectors) {
+        $(sel).each((_, el) => {
+            const provider    = $(el).text().trim();
+            const dataContent = $(el).attr('data-content') ||
+                                $(el).attr('data-src')     ||
+                                $(el).attr('data-url')     ||
+                                $(el).attr('href')         || null;
+            if (provider && dataContent) mirrorStreams.push({ provider, dataContent });
+        });
+        if (mirrorStreams.length) break;
+    }
+
+    // Fallback: cari dari script tag
+    const iframeSrcs = [];
+    $('script').each((_, el) => {
+        const src = $(el).html() || '';
+        const matches = src.match(/(?:src|url)\s*[:=]\s*['"]([^'"]*(?:embed|player|stream)[^'"]*)['"]/gi) || [];
+        matches.forEach(m => {
+            const u = m.match(/['"]([^'"]+)['"]/)?.[1];
+            if (u) iframeSrcs.push(u);
+        });
     });
 
-    return { streamUrl, mirrorStreams };
+    return {
+        streamUrl,
+        mirrorStreams,
+        ...(iframeSrcs.length ? { iframeSrcs } : {}),
+    };
 }
 
 async function getAnimeDetail(url, includeStream = false) {

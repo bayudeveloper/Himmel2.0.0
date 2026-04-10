@@ -56,6 +56,11 @@
   "path": "/ai/aibanana?prompt=&apikey="
         },
         {
+  "name": "AI Banana I2I",
+  "desc": "Image to image via aibanana.net (qwen-image)",
+  "path": "/ai/aibanana-i2i?url=&prompt=&apikey="
+        },
+        {
           "name": "AI Chat",
           "desc": "Chat with AI",
           "path": "/ai/chat?q=&apikey="

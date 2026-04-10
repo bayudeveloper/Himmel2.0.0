@@ -34,17 +34,17 @@ async function generateGoodbye(urlfoto, subject) {
     const bgImg = await loadImage(bgBuf);
     ctx.drawImage(bgImg, 0, 0, W, H);
 
-    // ── Judul "Good Bye" ───────────────────────────────────────────────────
+    // ── Judul "Good Bye" — di dalam area kertas, bukan ujung atas ─────────
     ctx.font         = 'bold 68px sans-serif';
     ctx.fillStyle    = '#3a3a3a';
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('Good Bye', W / 2, 90);
+    ctx.fillText('Good Bye', W / 2, 175);
 
-    // ── Foto profil (lingkaran, center) ────────────────────────────────────
-    const avatarSize   = 280;
+    // ── Foto profil (lingkaran, tengah area kertas) ────────────────────────
+    const avatarSize   = 260;
     const avatarX      = W / 2;
-    const avatarY      = H / 2 - 30;
+    const avatarY      = 400;
     const avatarRadius = avatarSize / 2;
 
     const avatarBuf = await fetchImage(urlfoto);
@@ -72,7 +72,7 @@ async function generateGoodbye(urlfoto, subject) {
     ctx.stroke();
 
     // ── Subject / username ─────────────────────────────────────────────────
-    const textY = avatarY + avatarRadius + 70;
+    const textY = avatarY + avatarRadius + 65;
 
     ctx.shadowColor   = 'rgba(0,0,0,0.12)';
     ctx.shadowBlur    = 8;

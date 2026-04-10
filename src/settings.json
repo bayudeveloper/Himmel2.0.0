@@ -237,9 +237,14 @@
           "path": "/tools/qrcode?text="
         },
         {
-         "name": "Welcome V1",
+         "name": "Welcome Card V1",
          "desc": "Generate welcome card dengan  foto profil",
          "path": "/tools/welcomev1?urlfoto=&subject="
+        },
+        {
+  "name": "Goodbye Card V1",
+  "desc": "Generate goodbye card dengan foto profil",
+  "path": "/tools/goodbyev1?urlfoto=&subject="
         }
       ]
     },

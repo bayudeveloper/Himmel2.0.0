@@ -51,6 +51,11 @@
           "path": "/ai/faceswap?foto1=&foto2=&apikey="
         },
         {
+  "name": "AI Banana",
+  "desc": "Text to image via aibanana.net",
+  "path": "/ai/aibanana?prompt=&apikey="
+        },
+        {
           "name": "AI Chat",
           "desc": "Chat with AI",
           "path": "/ai/chat?q=&apikey="

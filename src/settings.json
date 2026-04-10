@@ -45,6 +45,11 @@
     {
       "name": "AI (人工知能)",
       "items": [
+         {
+           "name": "Deepseek R1",
+           "desc": "Chat with Deepseek R1 via NoteGPT",
+           "path": "/ai/deepseek?q=&apikey="
+        },
         {
           "name": "Face Swap",
           "desc": "Face swap 1 to 2",
@@ -61,7 +66,7 @@
   "path": "/ai/aibanana-i2i?url=&prompt=&apikey="
         },
         {
-          "name": "AI Chat",
+          "name": "Chat Gpt",
           "desc": "Chat with AI",
           "path": "/ai/chat?q=&apikey="
         },
